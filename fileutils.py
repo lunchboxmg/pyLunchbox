@@ -1,3 +1,5 @@
+from maths import Vector2f, Vector3f
+
 EMPTY = ""
 
 INVALID_INT = "ERROR: [{:s}]\n       Cannot convert \"{:s}\" to an Integer."
@@ -76,16 +78,13 @@ class FileReader(object):
         if self.__not_valid(): return None
 
         index = self._index
-        if num + index >= len(self._items):
+        if num + index - 1 >= len(self._items):
             amount = len(self._items) - index
             print EXCESS_WARNING.format(self, num, "Float", amount)
         else:
             amount = num
 
-        arr = map(float, [x for x in self._items[index:index + amount]])
-        self._index += amount
-
-        return arr
+        return [self.get_next_float() for _ in xrange(amount)]
 
     def get_next_int(self):
         """ Retrieve the next item in the current line as an integer. """
@@ -110,15 +109,40 @@ class FileReader(object):
         index = self._index
         if num + index >= len(self._items):
             amount = len(self._items) - index
-            print EXCESS_WARNING.format(self, num, "Float", amount)
+            print EXCESS_WARNING.format(self, num, "Integer", amount)
         else:
             amount = num
 
-        arr = [self.get_next_int() for _ in xrange(amount)]
-        self._index += amount
+        return [self.get_next_int() for _ in xrange(amount)]
 
-        return arr
+    def get_next_vector2f(self):
+        """ Retrieve the next two values and place them into a Vector2f. """
 
+        try:
+            x = self.get_next_float()
+            y = self.get_next_float()
+        except Exception as e:
+            print e
+            return None
+
+        if x is None or y is None: return None
+
+        return Vector2f(x, y)
+
+    def get_next_vector3f(self):
+        """ Retrieve the next three values and place them into a Vector3f. """
+
+        try:
+            x = self.get_next_float()
+            y = self.get_next_float()
+            z = self.get_next_float()
+        except Exception as e:
+            print e
+            return None
+
+        if x is None or y is None or z is None: return None
+
+        return Vector3f(x, y, z)
 
     def is_eol(self):
         """ Check if the file cursor is at the end of the line (EOL). """
@@ -141,12 +165,17 @@ if __name__ == "__main__":
     test_file = FileReader(filename)
     test_file.start()
     test_file.read_line()
-    print test_file.get_next_floats(3)
-    print test_file.get_next_float()
+    print "A", test_file.get_next_floats(3)
+    print "B", test_file.get_next_float()
     test_file.read_line()
+    print "C", test_file.get_next_ints(3)
+    test_file.read_line()
+    v = test_file.get_next_vector3f()
     print test_file.get_next_ints(3)
     test_file.read_line()
-    print test_file.get_next_ints(3)
-    test_file.read_line()
+    v = test_file.get_next_vector3f()
+    print v, type(v)
+    v2 = test_file.get_next_vector3f()
+    print v2, type(v2)
     print test_file._line is None
     test_file.destroy()
