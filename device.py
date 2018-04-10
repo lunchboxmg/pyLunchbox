@@ -148,7 +148,7 @@ class Keyboard(object):
                 if key not in self._keys_pressed:
                     self._keys_pressed.add(key)
                     self._keys_held.add(key)
-            if action == gflw.RELEASE:
+            if action == glfw.RELEASE:
                 self._keys_held.remove(key)
                 self._keys_released.add(key)
             self._mod_bitfield = mods
@@ -205,7 +205,7 @@ class Mouse(object):
         # Button state collections
         self._buttons_pressed = set()
         self._buttons_held = set()
-        self._buttons_release = set()
+        self._buttons_released = set()
         self._mod_bitfield = 0
 
         # Mouse scroll wheel offsets
@@ -438,14 +438,13 @@ class DeviceManager(object):
 
         # Update the devices and handle device events
         try:
-            self.window.update()
             self.keyboard.update()
             self.mouse.update()
             glfw.poll_events()
             self.timing.update()
         except Exception as e:
             print "ERROR: Device manager could not update ...\n\t{:s}".format(e)
-            self.shutdow()
+            self.shutdown()
 
     def shutdown(self):
         """ Shutdown the device manager. """

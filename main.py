@@ -1,5 +1,8 @@
 import device
 
+# FOR testing
+import glfw
+
 class MainApp(object):
     """ Application repsonsible for initalizing and running the shell. """
 
@@ -19,7 +22,15 @@ class MainApp(object):
     def main(cls):
         """ Main function to run the app. """
 
-        pass
+        cls.init()
+        keyboard = device.keyboard
+        while device.is_window_open():
+            device.update()
+            if keyboard.is_key_pressed(glfw.KEY_ESCAPE):
+                print "Bye Bye!"
+                device.request_window_closure()
+            device.swap()
+        cls.destroy()
 
     @classmethod
     def get_version(cls):
@@ -40,6 +51,5 @@ class MainApp(object):
 
 if __name__ == "__main__":
 
-    MainApp.init()
     print MainApp.get_full_title()
-    MainApp.destroy()
+    MainApp.main()
