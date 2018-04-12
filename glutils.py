@@ -186,3 +186,79 @@ class ShaderProgram(object):
         """ Retrieve the shader program id. """
 
         return self._id_program
+
+class Vao(object):
+    """ The VAO class is basically designed to make using Vertex Array Objects
+    `prettier`. """
+
+    def __init__(self):
+
+        self._id = glGenVertexArrays()
+
+    def bind(self):
+        """ Tell the GPU that we are going to use this VAO. """
+
+        glBindVertexArray(self._id)
+
+    def unbind(self):
+        """ Tell the GPU that we are done using this VAO. """
+
+        glBindVertexArray(0)
+
+    def destroy(self):
+        """ Delete this VAO from the GPU. """
+
+        glDeleteVertexArrays(self._id)
+
+    def get_id(self):
+        """ The the GPU id assigned to this VAO. """
+
+        return self._id
+
+class Vbo(Object):
+    """ The Vbo class respresents the OpenGL Vertex Buffer Object.
+
+    The VBO provides a method of uploading vertex data associated with a VAO
+    to the GPU. """
+
+    def __init__(self):
+        """ Constructor. """
+
+        self._id = glGenBuffers()
+        self._temp_target = -1
+
+    def bind(self, target):
+        """ Tell the GPU that we are going to use utilize this buffer object.
+
+        Parameters:
+        ===========
+        * target (:obj:`int`): Specifies the target to which the buffer object
+          is boundself.
+
+        NOTE: See https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBindBuffer.xhtml
+        """
+
+        glBindBuffer(target, self._id)
+        self._temp_target = target
+
+    def unbind(self):
+        """ Tell the GPU we are done using this buffer object. """
+
+        glBindBuffer(self._temp_target, 0)
+
+    def upload(self, target, data, usage):
+        """ Upload the `input` data to the GPUself.
+
+        Parameters:
+        ===========
+        * target (:obj:`int`): Specifies the target to which the buffer object
+          is bound for.
+        * data (:obj:`ndarray`): Numpy array of the data being pushed to the
+          GPU.
+        * usage (:obj:`int`): Specifies the expected usage pattern of the data
+          being stored.
+
+        NOTE: see https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBufferData.xhtml
+        """
+
+        glBufferData(target, data.nbytes, data, usage)
