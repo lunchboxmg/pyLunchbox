@@ -194,6 +194,7 @@ class Vao(object):
     def __init__(self):
 
         self._id = glGenVertexArrays()
+        self._temp_num_attribs = -1
 
     def bind(self):
         """ Tell the GPU that we are going to use this VAO. """
@@ -204,6 +205,18 @@ class Vao(object):
         """ Tell the GPU that we are done using this VAO. """
 
         glBindVertexArray(0)
+
+    def enable(self, num_attribs):
+        """ Enable the input number of attributes associated with this buffer
+        object. """
+
+        self._temp_num_attribs = num_attribs
+        for i in xrange(num_attribs): glEnableVertexAttribArray(i)
+
+    def disable(self):
+        """ Disable the attributes associated with this buffer object. """
+
+        for i in xrange(num_attribs): glDisableVertexAttribArray(i)
 
     def destroy(self):
         """ Delete this VAO from the GPU. """
@@ -262,3 +275,29 @@ class Vbo(Object):
         """
 
         glBufferData(target, data.nbytes, data, usage)
+
+    def upload_sub(self, target, offset, data):
+        """ Upload the input data to a portion of this buffer object.
+
+        Parameters:
+        ===========
+        * target (:obj:`int`): Specifies the target buffer object.
+          The symbolic constant must be GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER,
+          GL_PIXEL_PACK_BUFFER, or GL_PIXEL_UNPACK_BUFFER.
+        * offset (:obj:`int`): Specifies the offset into the buffer object's
+          data store where data replacement will begin, measured in bytes.
+        * size (:obj:`int`): Specifies the size in bytes of the data store
+          region being replaced.
+        * data (:obj:`ndarray`): Specifies the new data that will be copied into
+          the data store.
+
+        NOTE: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBufferSubData.xhtml
+        """
+
+        datatype_size = data.nbytes / data.size
+        glBufferSubData(target, offset*datatype_size, data.nbytes, data)
+
+    def destroy(self):
+        """ Tell the GPU that we are done using this buffer object. """
+
+        glDeleteBuffers(self._id)
