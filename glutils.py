@@ -15,7 +15,7 @@ class UniformBase(object):
     def __init__(self, name):
 
         self._name = name
-        self._location = -1
+        self._location = UNIFORM_NOT_FOUND
 
     def store_location(self, id_program):
         """ Store the variable location of this shader uniform. """

@@ -2,6 +2,7 @@ import numpy as np
 from numpy import ndarray, identity, zeros
 from numpy import sqrt as npsqrt, sum as npsum, dot
 
+from math import sin, cos
 from constants import *
 # Type Conversions
 
@@ -145,11 +146,52 @@ class Vector3f(Vector2f):
 
         return Vector2f(self.y, self.z)
 
+    def transform(self, matrix):
+        """ Transform this vector by a matrix. """
+
+
+        if matrix.shape[1] == 4:
+            v = np.array([self[0], self[1], self[2], 1.0])
+        elif matrix.shape[1] == 3:
+            v = self
+
+        try:
+            return Vector3f(*matrix.dot(v)[:3])
+        except ValueError as e:
+            print e
+            return None
+
 class Vector3i(Vector3f):
 
     _UNIT = UINT32
 
 # Matrix operations
+
+class Vector4f(Vector3f):
+
+    def __new__(cls, x, y, z, w=1.0):
+        """ Create numpy array of elements x, y, z.
+
+        Parameters:
+        ===========
+        x (:obj:`float`): x-component.
+        y (:obj:`float`): y-component.
+        z (:obj:`float`): z-component.
+        w (:obj:`float`): w-component.
+        """
+
+        obj = np.asarray((x, y, z, w), cls._UNIT).view(cls)
+        return obj
+
+    def get_w(self): return self[2]
+    def set_w(self, value): self[2] = self._UNIT(value)
+    w = property(get_w, set_w, doc="Z-Component of the Vector.")
+
+    def get_xyz(self):
+        """ Retrieve a 3D vector from the x, y, z components of this vector. """
+
+        return Vector3f(self._x, self._y, self._z)
+
 
 def translate(m, v):
     """ Perform a translation on the input matrix `m` using `v` position
@@ -351,3 +393,12 @@ if __name__ == "__main__":
     vs = [Vector3f(i*.5, i + 2.0, i*3) for i in xrange(4)]
     for v in vs: print v
     print average(vs)
+
+    test_pos3 = Vector3f(1.0, 1.0, 1.0)
+    test_pos4 = Vector4f(1.0, 1.0, 1.0, 1.0)
+
+    matrix = identity(4, FLOAT32)
+    matrix = scale(matrix, Vector3f(1, 1, 1))
+    print ">>>", test_pos3.transform(matrix)
+    matrix = rotate(matrix, 45.0, Vector3f(1, 0, 0))
+    print ">>>", test_pos3.transform(matrix).get_xy()
