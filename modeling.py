@@ -9,7 +9,7 @@ class VertexFormat(object):
 
 
 class MeshData(object):
-    """" Class for storing the base mesh vertex data.  
+    """" Class for storing the base mesh vertex data.
 
     In it's current incarnation, this class can be thought of as a blueprint
     for the mesh component.  When an entity is spawned into the system with
@@ -41,12 +41,12 @@ class ModelLoader(object):
     from input files. """
 
     def __init__(self):
-        
+
         self._meshes = dict()
-    
+
     def load_mesh(self, name, filename):
         """ Load in a mesh from the input data file. """
-        
+
         ext = filename.strip().split(".")[-1]
 
         if ext == "obj":
@@ -62,7 +62,7 @@ class ModelLoader(object):
                     new_name = "{:s}_{:d}".format(name, i)
                     if new_name in self._meshes: i += 1
                     else: break
-                msg = "WARNING: Mesh <{:s} already exists, naming to <{:s}>"
+                msg = "WARNING: Mesh <{:s}> already exists, naming to <{:s}>"
                 print msg.format(name, new_name)
                 name = new_name
             self._meshes[name] = mesh
@@ -160,9 +160,9 @@ class ModelLoader(object):
         if not keep_subs: meshes["MASTER"] = MeshData(apos, auvs, anorm)
 
         return meshes
-        
+
     def iter_meshes(self):
-        
+
         return self._meshes.iteritems()
 
 if __name__ == "__main__":

@@ -174,6 +174,8 @@ class MemoryManager(object):
     """ Manages the memory associated with a batch.  All the data within a
     batch is stored within one buffer object. """
 
+    MAX_REFACTOR = 300
+
     def __init__(self, max_size):
         """ Constructor.
 
@@ -188,6 +190,7 @@ class MemoryManager(object):
         self._last = None
         self._index_last = 0
 
+        # GPU vertex array, buffer object references
         self._vao = -1
         self._vbo = -1
 
@@ -205,11 +208,29 @@ class MemoryManager(object):
                 chunk.insert_into(new_chunk, self)
                 return new_chunk
 
-        new_chunk = self._store_data(self._index_last, data)
+        new_chunk = self.__store_data(self._index_last, data)
         MemoryChunk.append(new_chunk, self._last)
         self._last = new_chunk
         self._index_last += len(data)
         return new_chunk
+
+    def __store_data(self, start, data):
+        """ Internal function to store the data into batch memory. """
+
+        new_chunk = MemoryChunk.create_data_chunk(self._index_last, data)
+        self.__store_to_gpu(start, data)
+        return new_chunk
+
+    def __store_to_gpu(self, start, data):
+        """ Internal function to place the data within the vertex array/buffer
+        objects. """
+
+        pass
+
+    def remove(self, chunk):
+        """ Remove the input `chunk` from this batch. """
+
+        next_ = chunk.get_next()
 
 if __name__ == "__main__":
 
