@@ -46,7 +46,7 @@ class UniformFloat(UniformBase):
     def load(self, value):
         """ Load the input `value` into this shader uniform. """
 
-        if (not used or self._value != value):
+        if (not self._used or self._value != value):
             glUniform1f(self._location, value)
             self._used = True
             self._value = value
@@ -78,7 +78,7 @@ class UniformVector3f(UniformBase):
     def load(self, x, y, z):
         """ Load the 3 input values into the shader vec3f uniform. """
 
-        if (not used or self._x != x or self._y != y or self._z != z):
+        if (not self._used or self._x != x or self._y != y or self._z != z):
             self._x = x
             self._y = y
             self._z = z
@@ -108,17 +108,14 @@ class ShaderProgram(object):
           source.
         * fn_fragment (:obj:`string`): File path and name of the fragment
           shader source.
-         """
+        """
 
-         self._name = name
-         self._source = {}
-         self._id_vertex = self.__load_shader(fn_vertex, GL_VERTEX_SHADER)
-         self._id_fragment = self.__load_shader(fn_fragment, GL_FRAGMENT_SHADER)
-         self._id_program = self.__create_program()
-
-         self.bind_attributes()
-         self.get_all_uniform_locations()
-
+        self._name = name
+        self._source = {}
+        self._id_vertex = self.__load_shader(fn_vertex, GL_VERTEX_SHADER)
+        self._id_fragment = self.__load_shader(fn_fragment, GL_FRAGMENT_SHADER)
+        self._id_program = self.__create_program()
+        
     def start(self): glUseProgram(self._id_program)
     def stop(self): glUseProgram(0)
 
@@ -216,7 +213,7 @@ class Vao(object):
     def disable(self):
         """ Disable the attributes associated with this buffer object. """
 
-        for i in xrange(num_attribs): glDisableVertexAttribArray(i)
+        for i in xrange(self._temp_num_attribs): glDisableVertexAttribArray(i)
 
     def destroy(self):
         """ Delete this VAO from the GPU. """
@@ -228,7 +225,7 @@ class Vao(object):
 
         return self._id
 
-class Vbo(Object):
+class Vbo(object):
     """ The Vbo class respresents the OpenGL Vertex Buffer Object.
 
     The VBO provides a method of uploading vertex data associated with a VAO
