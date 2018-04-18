@@ -1,13 +1,34 @@
+""" This module is responsible for handling the movement of data to the GPU.
+
+This system attempts to utilize a batching system.  There will be two types
+of batching ...
+    * static - vertex data that rarely changes
+    * dynamic - vertex data that either constantly changes or is toggled.
+
+TODO:
+    * VertexFormat - Need to decide if the the batch or the memory chunk
+      should be responsible for keeping track of the format / float_count
+      of the data associated with it.
+"""
+
 import numpy as np
 from glutils import Vao, Vbo
+
+__author__ = "lunchboxmg"
 
 class MemoryChunk(object):
     """ The MemoryChunk class keeps the indexing information for an entity's
     mesh data that is placing within a batch's data array.
 
     This class is also a node for the double-linked list that represents the
-    batch's data references. """
+    batch's data references. 
+    
+    TODO: MAX_FLOAT_COUNT should reflect the VertexFormat of the associated
+    data.  These chunks will be assigned to MemoryManagers for batch and 
+    those batches will be associated with particular shaders.  There is no
+    guarantee each shader will utilize the same vertex data format.  """
 
+    MAX_FLOAT_COUNT = 3 + 3 + 3
     _COUNT = 0 # Internal indexing
 
     def __init__(self, start, length, is_gap=False, ref=None):
@@ -204,7 +225,7 @@ class MemoryManager(object):
 
         for chunk in self._empty:
             if chunk.get_length() >= len(data):
-                new_chunk = self._store_data(chunk.get_index_first(), data)
+                new_chunk = self.__store_data(chunk.get_index_first(), data)
                 chunk.insert_into(new_chunk, self)
                 return new_chunk
 
@@ -231,6 +252,89 @@ class MemoryManager(object):
         """ Remove the input `chunk` from this batch. """
 
         next_ = chunk.get_next()
+        prev = chunk.get_previous()
+        if next_ is None:
+            self.__remove_last(chunk, next_, prev)
+        elif next_.is_gap():
+            self.__remove_near_gap(chunk, next_, prev)
+        else:
+            self.__remove_near_data(chunk, next_, prev)
+    
+    def __remove_near_data(self, chunk, next_, prev):
+        """ Internal function to remove a chunk that is adjacent to a chunk 
+        that contains data."""
+
+        if prev is not None and prev.is_gap():
+            # The previous chunk is a gap, dissolve this node into the gap
+            prev.expand(chunk.get_length())
+            prev.set_next(next_)
+        else:
+            # Data chunks are on both sides of this chunk, convert to a gap
+            gap = MemoryChunk.create_empty_chunk(chunk.get_index_first(), 
+                                                 chunk.get_length())
+            self._empty.append(gap)
+            gap.set_previous(prev)
+            gap.set_next(next_)
+
+    def __remove_near_gap(self, chunk, next_, prev):
+        """ Internal function to remove a chunk that is adjacent to a gap. """
+
+        if prev is not None and prev.is_gap():
+            # The previous and next chunks are both gaps.  Dissolve all three
+            # into one big bap
+            self._empty.remove(next_)
+            prev.set_next(next_.get_next())
+            prev.expand(chunk.get_length() + next_.get_length())
+        else:
+            next_.shrink(-chunk.get_length())
+            next_.set_previous(prev)
+        # TODO: Store zeros in this place in the vbo maybe
+
+    def __remove_last(self, chunk, next_, prev):
+        """ Internal function to remove the last memory chunk. """
+
+        if prev is not None and prev.is_gap():
+            # This chunk is the last and the previous is a gap, so make the
+            # last chunk be the previous previous
+            self._empty.remove(prev)
+            if prev.get_previous() is not None:
+                # TODO: shouldn't be two gaps next to each other but 
+                # make sure that cannot happen.
+                prev.get_previous().set_next(None)
+            self._last = prev.get_previous()
+            self._index_last -= chunk.get_length() + prev.get_length()
+        else:
+            # Dump this chunk and make the previous the new last chunk
+            if prev is not None:
+                prev.set_next(None)
+            self._last = prev
+            self._index_last -= chunk.get_length()
+    
+    def remove_gap(self, gap):
+        """ Remove the input empty chunk from the internal empty storage 
+        array. """
+
+        self._empty.remove(gap)
+
+    def defrag_quick(self):
+        """ Refactor the first empty chunk in the batch. """
+
+        if len(self._empty) == 0: return False
+
+        # Pop the first gap and link the prev and next chunks together
+        removed = self._empty.pop(0)
+        removed.get_next().set_previous(removed.get_previous())
+        rlength = removed.get_length()
+
+        accum = [] ; length = 0
+        current = removed.get_next()
+        while current is not None and current.is_gap() and length < MemoryManager.MAX_REFACTOR:
+            current.shift(-rlength)
+            accum.append(current.get_data())
+            length += current.get_length() / MemoryChunk.MAX_FLOAT_COUNT
+            current = current.get_next()
+
+
 
 if __name__ == "__main__":
 
