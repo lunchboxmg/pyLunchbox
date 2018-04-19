@@ -184,14 +184,6 @@ class MemoryChunk(object):
         msg = "MemoryChunk[{:05d}]@({:d},{:d}), is_gap={:b}"
         return msg.format(self._id, self._index_first, self._index_last, self._is_gap)
 
-class Batch(object): pass
-
-class StaticBatch(Batch):
-    """ The StaticBatch class if the batch system for objects whose vertex data
-    generally does not change on a regular basis. """
-
-    pass
-
 class MemoryManager(object):
     """ Manages the memory associated with a batch.  All the data within a
     batch is stored within one buffer object. """
@@ -213,6 +205,7 @@ class MemoryManager(object):
         self._index_last = 0
 
         # GPU vertex array, buffer object references
+        self._data = _zeros(max_size * MemoryChunk.MAX_FLOAT_COUNT)
         self._vao = -1
         self._vbo = -1
 
@@ -384,9 +377,57 @@ class MemoryManager(object):
 
         return True
 
+    def destroy(self):
+        """ Kill this memory manager. """
 
+        # Destroy the vao, vbo
+        self._data = None
+        self._empty = None
 
+class Batch(object): pass
 
+class StaticBatch(Batch):
+    """ The StaticBatch class if the batch system for objects whose vertex data
+    generally does not change on a regular basis. """
+
+    def __init__(self, manager):
+        """ Constructor.
+
+        Parameters:
+        ===========
+        * manager (:obj:`MemoryManager`): The manager that is responsible for 
+          managing this batch's memory.
+        """
+
+        self._manager = manager
+        self._entity_map = dict()
+
+    def add(self, entity): pass
+
+        # Get the entity's mesh data
+        # Create a memory chunk for the data
+        # NOTE: As this is static data, make sure to transform the data first
+        # Add the data to the master array
+
+    def remove(self, entity):
+        """ Remove the input `entity` from this batch. """
+
+        if entity in self._entity_map:
+            chunk = self._entity_map[entity]
+            self._manager.remove(chunk)
+            del self._entity_map[entity]
+
+    def defrag(self, full=False):
+        """ Defragment / Refactor this batch's memory array. """
+
+        if full: return self._manager.defrag_full()
+        return self._manager.defrag_quick()
+
+    def destroy(self):
+        """ Kill this batch and free the linked memory in this batch's 
+        manager. """
+
+        pass
 
 if __name__ == "__main__":
 
