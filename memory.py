@@ -12,6 +12,7 @@ TODO:
 """
 
 import numpy as np
+from numpy import zeros as _zeros
 from glutils import Vao, Vbo
 
 __author__ = "lunchboxmg"
@@ -333,6 +334,57 @@ class MemoryManager(object):
             accum.append(current.get_data())
             length += current.get_length() / MemoryChunk.MAX_FLOAT_COUNT
             current = current.get_next()
+
+        if current is None:
+            # TODO: Need to flatten the accumulated array
+            self.__store_to_gpu(removed.get_index_first(), accum)
+            self._index_last -= rlength
+        else:
+            
+            accum.append(_zeros(rlength))
+            self.__store_to_gpu(removed.get_index_first(), accum)
+            if current.is_gap():
+                # Next chunk is already a gap, so just make that gap bigger
+                current.shrink(-rlength)
+            else:
+                # Add empty bubble at the end of the accumulated refactor data
+                bubble = MemoryChunk.create_empty_chunk(current.get_previous().get_index_last(), rlength)
+                self._empty.insert(0, bubble)
+                bubble.set_previous(current.get_previous())
+                bubble.set_next(current)
+
+        return True
+
+    def defrag_full(self):
+        """ Defragment the entire batch until all the gaps are removed. """
+
+        if len(self._empty) == 0: return False
+        
+        removed = self._empty.pop(0)
+        removed.get_next().set_previous(removed.get_previous())
+        rlength = removed.get_length()
+
+        accum = [] ; length = 0 ; done = False
+        current = removed.get_next()
+        while not done:
+            if current is None: # Hit the end of the chunk chain
+                # TODO: Need to flatten the accumulated array
+                self.__store_to_gpu(removed.get_index_first(), accum)
+                self._index_last -= rlength
+                done = True
+            elif current.is_gap():
+                removed = self._empty.pop(0)
+                removed.get_next().set_previous(removed.get_previous())
+                rlength += removed.get_length()
+            else:
+                current.shift(rlength)
+                accum.append(current.get_data())
+                length += current.get_length() / MemoryChunk.MAX_FLOAT_COUNT #TODO: Do we need
+            current = current.get_next()
+
+        return True
+
+
 
 
 
