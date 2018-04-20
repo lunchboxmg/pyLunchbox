@@ -429,6 +429,30 @@ class StaticBatch(Batch):
 
         pass
 
+class DynamicBatch(Batch):
+    """ Handles batches for mesh data that is constantly being altered. """
+
+    MAX_VERTEX_COUNT = 40000
+
+    def __init__(self):
+        """ Constructor. """
+
+        self._manager = MemoryManager(DynamicBatch.MAX_VERTEX_COUNT)
+        self._vao = None
+        self._vbo = None
+
+    def add(self, entity): pass
+
+    def remove(self, entity): pass
+    
+    def defrag(self, full=False):
+        """ Defragment / Refactor this batch's memory array. """
+
+        if full: return self._manager.defrag_full()
+        return self._manager.defrag_quick()
+
+    def destroy(self): pass
+
 if __name__ == "__main__":
 
     chunks = [] ; start = 0
