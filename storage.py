@@ -109,7 +109,19 @@ class Bag(object):
         self._contents[self._size] = item
         self._size += 1
         return item
-    
+
+    def get(self, index):
+        """ Retrieve the item at position `index`. """
+
+        if index >= self._contents.size:
+            self.__expand(max(self._contents.size * 2, index + 1))
+        return self._contents[index]
+
+    def unsafe_get(self, index):
+        """ Retrieve the item at position index without checking bounds. """
+
+        return self._contents[index]
+
     def set(self, item, index):
         """ Set the contents of the bag at position `index` to the input 
         `item`. """
@@ -138,6 +150,11 @@ class Bag(object):
         """ Determine if this bag has no contents. """
 
         return self._size == 0
+
+    def get_size(self):
+        """ Retrieve the current amount of items in this bag. """
+
+        return self._size
 
     def get_capacity(self):
         """ Retrieve the current capacity for this bag. """
