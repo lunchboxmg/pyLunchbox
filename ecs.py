@@ -139,37 +139,57 @@ class ComponentManager(object):
     """ The ComponentManager class manages the components created for the
     entities. """
 
-    def __init__(self):
+    def __init__(self, init_num_entities=64):
         """ Constructor. """
 
         self._typemap = dict()
         self._types = Bag(ComponentType)
-        self._mappers = Bag(ComponentMapper)
+        self._mappers = Bag(ComponentMapper, init_num_entities)
+
+    def create(self, entity_id, component_class, blueprint=None):
+        """ Create a new component for the the input entity. 
+        
+        Parameters:
+        ===========
+        * entity_id (:obj:`int`): ID (index) number for the entity.
+        * component_class (:obj:`Component`): Reference to the component's 
+          class.
+        * blueprint (:obj:`ComponentBlueprint): Blueprint used to initialize 
+          the data for this new component.
+        """
+
+        self.get_mapper(component_class).create(entity_id, blueprint)
 
     def get_mapper(self, component_class):
+        """ Retrieve the bag of components corresponding to the input 
+        component's class. """
 
         type_ = self.get_type_for(component_class)
-        print ">>>", type_.get_base()
         return self._mappers.get(type_.get_index())
 
     def get_type_for(self, component_class):
+        """ Retrieve the ComponentType for the input component's class. """
 
         if component_class not in self._typemap:
             self._typemap[component_class] = self.__create_type(component_class)
         return self._typemap[component_class]
 
     def __create_type(self, component_class):
+        """ Internal function that will create a new ComponentType for the 
+        input compontent's class when a type if fetched for a class that does 
+        not have a type associated with the class yet. """
 
         type_ = ComponentType(self._types.get_size(), component_class)
         self._typemap[component_class] = type_
         self._types.add(type_)
         self.__create_mapper(type_)
-        print type_
         return type_
 
     def __create_mapper(self, component_type):
+        """ Internal function that will create a mapper for the input 
+        component's type the first time that the mapper is requested by the
+        manager. """
 
-        print "Creating component mapper for <{:s}> ...".format(component_type)
         index = component_type.get_index()
         mapper = ComponentMapper(component_type.get_base())
         self._mappers.set(mapper, index)

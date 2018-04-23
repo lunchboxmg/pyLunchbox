@@ -186,9 +186,18 @@ class MemoryChunk(object):
 
 class MemoryManager(object):
     """ Manages the memory associated with a batch.  All the data within a
-    batch is stored within one buffer object. """
+    batch is stored within one buffer object. 
+    
+    Example Layout:
+    
+    +----+----+-----+---+------+-----+-----------------+
+    | E1 | E2 | E4  |   |  E5  | E6  |                 |
+    +----+----+-----+---+------+-----+-----------------+
+    E# - Entity Mesh Data
+    Blanks - Gaps, Unused space    
+    """
 
-    MAX_REFACTOR = 300
+    MAX_REFACTOR = 300 # Maximum amount of data to be refactored within a step
 
     def __init__(self, max_size):
         """ Constructor.
