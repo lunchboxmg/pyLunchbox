@@ -67,7 +67,7 @@
             "name": "Python: Module",
             "type": "python",
             "request": "launch",
-            "module": "module.name"
+            "module": "pyLunchbox.test.test_ecs"
         },
         {
             "name": "Python: Pyramid",

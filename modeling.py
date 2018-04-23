@@ -1,12 +1,77 @@
+""" The modeling module is repsonible for handling mesh data.
+
+"""
 from maths import Vector2f, Vector3f
 import numpy as np
+
+__author__ = "lunchboxmg"
+
+from ecs import Component
+
+class VertexVector(object):
+    """ The VertexVector class contains information about a vector that 
+    comprised the vertex data for a mess. """
+
+    def __init__(self, size, dtype):
+
+        self._size = size
+        self._dtype = dtype
+    
+    def get_size(self):
+        """ Retrieve the number of elements comprising this vertex vector. """
+
+        return self._size
+
+    def get_dtype(self):
+        """ Retrieve the datatype associate with this vertex vector. """
+
+        return self._dtype
+
+V3F = VN3F = VT3F = VertexVector(3, Vector3f._UNIT)
+
+V_EMPTY = VertexVector(0, None)
+V_POSITION = 1
+V_NORMAL = 2
+V_TEXTURE = 4
+V_TANGENT = 8
+V_BITANGENT = 16
 
 class VertexFormat(object):
     """ The VertexFormat class in an enum like class used to designation how
     the data in a mesh is organized. """
 
-    V3_C3_N3 = 1
+    def __init__(self):
 
+        self._position = V_EMPTY
+        self._normal = V_EMPTY
+        self._texture = V_EMPTY
+        self._tangent = V_EMPTY
+        self._bitangent = V_EMPTY
+
+    def set(self, which, vector):
+
+        if which & V_POSITION:
+            self._position = vector
+        if which & V_NORMAL:
+            self._normal = vector
+        if which & V_TEXTURE:
+            self._texture = vector
+        if which & V_TANGENT:
+            self._tangent = vector
+        if which & V_BITANGENT:
+            self._bitangent = vector
+        
+        return self
+
+    def interleave_data(self, mesh_data):
+
+        offset = 0
+        for which in [self._position, self._normal, self._texture, self._tangent, self._bitangent]:
+            size = which.get_size()
+            dtype = which.dtype
+            offset += size
+
+V_BASE3 = VertexFormat().set(V_POSITION|V_NORMAL|V_TEXTURE, V3F)
 
 class MeshData(object):
     """" Class for storing the base mesh vertex data.
@@ -35,6 +100,8 @@ class MeshBundle(dict):
     """ The MeshBundle class is a container object for meshes. """
 
     pass
+
+class MeshComponent(Component): pass
 
 class ModelLoader(object):
     """ The ModelLoader class is a helper class used to load mesh/model data
@@ -170,14 +237,15 @@ if __name__ == "__main__":
     name = "TEST"
     #filename = "res/cube.obj"
     #filename = "res/Birch1.obj"
-    #filename = "res/stall.obj"
-    filename = "res/dragon.obj"
+    filename = "res/stall.obj"
+    #filename = "res/dragon.obj"
 
     test_loader = ModelLoader()
 
     from time import time as _time
     time_start = _time()
     data = test_loader.load_mesh(name, filename)
+    print data
     time_end = _time()
     print time_end - time_start
 

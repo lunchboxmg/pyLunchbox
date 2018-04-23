@@ -26,6 +26,11 @@ class Component(object):
 
     def get_class(self): return self.__class__
 
+    def save(self): 
+
+        msg = "{:s}.save() must be overridden in subclasses."
+        raise NotImplementedError(msg.format(self.__class__.__name__))
+
 class ComponentBlueprint(object):
     """ The ComponentBlueprint class is the base class for Blueprints.
 
@@ -90,6 +95,11 @@ class ComponentType(object):
 
         return self._base
 
+    def __str__(self):
+
+        m = "ComponentType<{:d}, {:s}>"
+        return m.format(self._index, self._base.__name__)
+
 class ComponentMapper(object):
     """ The component mapper serves as a container for a single specific
     component class. """
@@ -132,8 +142,12 @@ class ComponentMapper(object):
         """ Determines in the input entity has the component that corresponds
         to this mapper. """
 
-        if self._contents.size <= entity_id: return False
+        if self._contents.get_size() <= entity_id: return False
         return self._contents.get(entity_id) == None
+    
+    def __str__(self):
+
+        return "ComponentMapper<{:s}>".format(self._type.__name__)
 
 class ComponentManager(object):
     """ The ComponentManager class manages the components created for the
@@ -207,10 +221,12 @@ if __name__ == "__main__":
     ct1 = _TestComponent1(1, 2)
     mapper = cm.get_mapper(ct1.get_class())
     type_ = cm.get_type_for(ct1.get_class())
+    print mapper
     
     bt1 = ComponentBlueprint(type_)
     print bt1
     print bt1._type
-    print bt1.create()
+    #print bt1.create()
+    print ct1.save()
 
 
