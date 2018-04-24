@@ -59,6 +59,11 @@ class ComponentBlueprint(object):
 
         return self._type
 
+    def get_class(self):
+        """ Retrieve the reference to this class. """
+
+        return self.__class__
+
     def __str__(self):
 
         return "ComponentBlueprint<{:s}>".format(self._type._base.__name__)
@@ -214,6 +219,83 @@ class _TestComponent1(Component):
 
         self.x = x
         self.y = y
+
+class Entity(object):
+    """ The Entity class serves as a linkage point for a collection of 
+    components that describes an object. """
+
+    def __init__(self, entity_id):
+        """ Constructor.
+
+        Parameters:
+        ===========
+        * entity_id (:obj:`int`): Identification (index) number assigned to 
+          this entity.
+        """
+
+        self._id = entity_id
+
+    def get_id(self):
+        """ Retrieve the identification of this entity that links it's 
+        components. """
+
+        return self._id
+    
+    def __eq__(self, other):
+
+        if self == other: return True
+        if isinstance(self, other):
+            return self._id = other.get_id()
+        return False
+
+    def __hash__(self):
+        
+        return self._id
+
+class EntityBlueprint(object):
+    """ The EntityBlueprint class serves as instructions (factory) for creating
+    a particular Entity. """
+
+    def __init__(self):
+        """ Constructor. """
+
+        self._blueprints = {}
+    
+    def add_blueprint(self, component_type, blueprint):
+        """ Add the input blueprint to this EntityBlueprint.
+
+        Parameters:
+        ===========
+        * component_type (:obj:`ComponentType`): Which component the blueprint
+          is for.
+        * blueprint (:obj:`ComponentBlueprint`): Instructions for making the 
+          component.
+        """
+        
+        if isinstance(component_type, ComponentType):
+            if isinstance(blueprint, ComponentBlueprint):
+                self._blueprints[component_type] = blueprint
+
+class EntityManager(object): pass
+
+    def __init__(self):
+        """ Constructor. """
+
+        self._entities = Bag(Entity)
+        self._next_id = 0
+        self._blueprints = dict()
+
+    def create_entity(self, blueprint=None):
+
+        if isinstance(blueprint, EntityBlueprint):
+            entity = blueprint.create(self._next_id)
+        else:
+            entity = Entity(self._next_id)
+        self._entities.set(entity, self._next_id)
+        self._next_id += 1
+
+
+
 
 if __name__ == "__main__":
 

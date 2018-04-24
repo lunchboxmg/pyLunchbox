@@ -246,7 +246,7 @@ def scale(m, v):
 
     return r
 
-def lookAtRH(eye, center, up):
+def look_at_RH(eye, center, up):
     """ Camera view matrix utilizing the right hand coordinate system. """
 
     f = normalize(center - eye)
@@ -263,7 +263,7 @@ def lookAtRH(eye, center, up):
 
     return r
 
-def lookAtLH(eye, center, up):
+def look_at_LH(eye, center, up):
     """ Camera view matrix utilizing the left hand coordinate system. """
 
     f = normalize(center - eye)
@@ -280,7 +280,7 @@ def lookAtLH(eye, center, up):
 
     return r
 
-def perspectiveRH(fovy, aspect, znear, zfar):
+def perspective_RH(fovy, aspect, znear, zfar):
 
     fovy *= D2R
     tan_half_fovy = tan(fovy * 0.5)
@@ -300,7 +300,7 @@ def perspectiveRH(fovy, aspect, znear, zfar):
 
     return r
 
-def perspectiveLH(fovy, aspect, znear, zfar):
+def perspective_LH(fovy, aspect, znear, zfar):
     """ Prespective projection for 3D rendering that utilizes the
     left hand coordinate system. """
 
@@ -322,7 +322,7 @@ def perspectiveLH(fovy, aspect, znear, zfar):
 
     return r
 
-def orthoRH(left, right, bottom, top, znear, zfar):
+def ortho_RH(left, right, bottom, top, znear, zfar):
     """ Orthographic projection for 3D rendering that utilizes the
     right hand coordinate system. """
 
@@ -343,7 +343,7 @@ def orthoRH(left, right, bottom, top, znear, zfar):
 
     return r
 
-def ortho2D(left, right, bottom, top):
+def ortho_2D(left, right, bottom, top):
     """ Orthographic projection for 2D rendering. """
 
     r = identity(4, dtype=FLOAT32)

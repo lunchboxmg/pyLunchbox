@@ -1,5 +1,20 @@
+""" The device module handles events pertaining to the input/output devices.
+
+Classes:
+========
+* Window: Handles interacting the with the device context.
+* Keyboard: Handles user keyboard interactions.
+* Mouse: Handles user mouse interactions.
+* DeviceTime: Used to keep track of the timing of the system.
+* DeviceManager: Manages all the above classes together.
+
+This module contains an internal DeviceManager instance that instances the 
+other device classes so that they may be imported by various other modules.
+"""
 import glfw
 from OpenGL.GL import *
+
+__author__ = "lunchboxmg"
 
 class Window(object):
     """ The Window class is repsonsible for displaying the results of the GPU
@@ -391,12 +406,7 @@ class DeviceManager(object):
     so that they may be shared between mutilple files. """
 
     def __init__(self):
-        """ Constructor.
-
-        Parameters:
-        ===========
-        app (:obj:`MainApp`): main application class.
-        """
+        """ Constructor. """
 
         self.app = None
         self.window = None
@@ -409,6 +419,7 @@ class DeviceManager(object):
 
         Parameters:
         ===========
+        * app (:obj:`MainApp`): Reference to the main application.
         * title (:obj:`string`): Text to display in the window's titlebar.
         * width (:obj:`int`): Width of the window in pixels.
         * height (:obj:`int`): Height of the window in pixels.
