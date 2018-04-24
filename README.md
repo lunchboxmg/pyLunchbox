@@ -1,5 +1,5 @@
 # pylunchbox
-Python OpenGL game framework.
+Python OpenGL framework.
 
 ## What is it?
-In my spare time I attempt to make a game in python and java using OpenGL.
+In my spare time I attempt to make a 3d engine in python and java using OpenGL.
