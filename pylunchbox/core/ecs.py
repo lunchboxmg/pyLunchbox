@@ -136,16 +136,28 @@ class ComponentMapper(object):
         self._contents.set(component, entity_id)
 
     def remove(self, entity):
-        """ Remove this component type from the input `entity`. """
+        """ Remove this component type from the input `entity`.
+        
+        Parameters
+        ----------
+        entity_id : :obj:`int`
+            Identification (index) number for the entity.
+        """
 
-        component = self._contents.get(entity.get_id())
+        component = self._contents.get(entity_id)
         if component is not None:
             # add to purgatory
             pass
 
     def has(self, entity_id):
         """ Determines in the input entity has the component that corresponds
-        to this mapper. """
+        to this mapper. 
+
+        Parameters
+        ----------
+        entity_id : :obj:`int`
+            Identification (index) number for the entity.
+        """
 
         if self._contents.get_size() <= entity_id: return False
         return self._contents.get(entity_id) == None
@@ -158,9 +170,18 @@ class ComponentManager(object):
     """ The ComponentManager class manages the components created for the
     entities. """
 
-    def __init__(self, init_num_entities=64):
-        """ Constructor. """
+    def __init__(self, world, init_num_entities=64):
+        """ Initialize the ComponentManager class. 
+        
+        Parameters
+        ----------
+        world : :class:`World`
+            A reference to the world instance.
+        init_num_entities : :obj:`int`, optional
+            Initialize the internal storage to hold this amount of entities.
+        """
 
+        self._world = world
         self._typemap = dict()
         self._types = Bag(ComponentType)
         self._mappers = Bag(ComponentMapper, init_num_entities)
@@ -168,16 +189,17 @@ class ComponentManager(object):
     def create(self, entity_id, component_class, blueprint=None):
         """ Create a new component for the the input entity. 
         
-        Parameters:
-        ===========
-        * entity_id (:obj:`int`): ID (index) number for the entity.
-        * component_class (:obj:`Component`): Reference to the component's 
-          class.
-        * blueprint (:obj:`ComponentBlueprint): Blueprint used to initialize 
-          the data for this new component.
+        Parameters
+        ----------
+        entity_id : :obj:`int`
+            Identification (index) number for the entity.
+        component_class : :class:`Component`
+            Reference to the component's class.
+        blueprint : :class:`ComponentBlueprint`, optional
+            Blueprint used to initialize the data for this new component.
         """
 
-        self.get_mapper(component_class).create(entity_id, blueprint)
+        return self.get_mapper(component_class).create(entity_id, blueprint)
 
     def get_mapper(self, component_class):
         """ Retrieve the bag of components corresponding to the input 
@@ -256,36 +278,68 @@ class EntityBlueprint(object):
     """ The EntityBlueprint class serves as instructions (factory) for creating
     a particular Entity. """
 
-    def __init__(self):
+    def __init__(self, name):
         """ Constructor. """
 
+        self._name = name
         self._blueprints = {}
-    
+
+    def create(self, entity_id):
+        """ Create a new entity using the instructions represented by this
+        blueprint.
+
+        Parameters
+        ----------
+        entity_id : :obj:`int`
+            Identification (index) number for the entity.
+        """
+
+        # TODO
+        for blueprint in self._blueprints.itervalues():
+            component = blueprint.create()
+
+        return Entity(entity_id)
+           
+
     def add_blueprint(self, component_type, blueprint):
         """ Add the input blueprint to this EntityBlueprint.
 
         Parameters:
         ===========
-        * component_type (:obj:`ComponentType`): Which component the blueprint
-          is for.
-        * blueprint (:obj:`ComponentBlueprint`): Instructions for making the 
-          component.
+        component_type : :class:`ComponentType`
+            Which component the blueprint is for.
+        blueprint : :class:`ComponentBlueprint`
+            Instructions for creating the new component for a new entity.
         """
         
         if isinstance(component_type, ComponentType):
             if isinstance(blueprint, ComponentBlueprint):
                 self._blueprints[component_type] = blueprint
+        
+    def get_name(self):
+        """ Retrieve the name given to this particular blueprint. """
 
-class EntityManager(object): pass
+        return self._name
 
-    def __init__(self):
+class EntityManager(object):
+    """ The EntityManager class manages all the entity instances. """
+
+    def __init__(self, world):
         """ Constructor. """
 
+        self._world = world
         self._entities = Bag(Entity)
         self._next_id = 0
         self._blueprints = dict()
 
-    def create_entity(self, blueprint=None):
+    def create(self, blueprint=None):
+        """ Create a new entity.
+
+        Parameters
+        ----------
+        blueprint : :class:`EntityBlueprint`
+            Instructions for building new particular entities.
+        """
 
         if isinstance(blueprint, EntityBlueprint):
             entity = blueprint.create(self._next_id)
@@ -294,6 +348,32 @@ class EntityManager(object): pass
         self._entities.set(entity, self._next_id)
         self._next_id += 1
 
+    def remove(self, entity_id): pass
+
+    def get(self, entity_id):
+        """ Retrieve the entity with the input id number. """
+
+        return self._entities.get(entity_id)
+
+    def add_blueprint(self, blueprint):
+        """ Add an EntityBlueprint for later use.
+
+        Parameters
+        ----------
+        blueprint : :class:`EntityBlueprint`
+            Instructions for building new particular entities.
+        """
+
+        if isinstance(blueprint, EntityBlueprint):
+            self._blueprints[blueprint.get_name()] = blueprint
+
+    def destory(self):
+        """ Kill this class and unload all the data. """
+
+        # Loop over entities, clearing components (esp mesh data)
+        pass
+
+    
 
 
 
