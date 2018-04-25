@@ -3,8 +3,8 @@
 The ECS treats entities as collections of components instead of using a super 
 complex taxonomic hierarchy using inheritence.
 
-Example:
-========
+Example
+-------
 Entity<Wolf> <- Entity<Canine> <- Entity<Animal> <- ... <- Entity<Base>
 .. becomes ..
 Entity<Wolf>.Components[Hostile, Trainable, Movement, ... ]
@@ -24,9 +24,13 @@ from storage import Bag
 class Component(object):
     """ The Component class is the base class for other components. """
 
-    def get_class(self): return self.__class__
+    def get_class(self): 
+        """ Retrieve a reference to this component's class object. """
+        
+        return self.__class__
 
-    def save(self): 
+    def save(self):
+        """ Save the data for this component. """
 
         msg = "{:s}.save() must be overridden in subclasses."
         raise NotImplementedError(msg.format(self.__class__.__name__))
@@ -37,8 +41,8 @@ class ComponentBlueprint(object):
     ComponentBlueprints instruct the system on how to create new components for
     the ComponentType associated with the blueprint.
 
-    Example:
-    ========
+    Example
+    -------
     CompA{x, y} .. BlueprintA{CompA() where x random(10) and y random(4,6)}
     BlueprintA.create() may return CompA(4, 4)
     """
@@ -87,7 +91,6 @@ class ComponentType(object):
     def __hash__(self):
         """ Overloaded hash function. """
 
-        print "+++", self._index
         return self._index
 
     def get_index(self):
@@ -110,7 +113,15 @@ class ComponentMapper(object):
     component class. """
 
     def __init__(self, type_, size=64):
-        """ Constructor. """
+        """ Constructor. 
+        
+        Parameters
+        ----------
+        type_ : :class:`ComponentType`
+            Reference to the type that this mapper holds.
+        size : :obj:`int`, optional
+            Initialize size of the mapper's contents.
+        """
 
         self._type = type_
         self._contents = Bag(type, size)
@@ -135,7 +146,7 @@ class ComponentMapper(object):
 
         self._contents.set(component, entity_id)
 
-    def remove(self, entity):
+    def remove(self, entity_id):
         """ Remove this component type from the input `entity`.
         
         Parameters
@@ -249,10 +260,10 @@ class Entity(object):
     def __init__(self, entity_id):
         """ Constructor.
 
-        Parameters:
-        ===========
-        * entity_id (:obj:`int`): Identification (index) number assigned to 
-          this entity.
+        Parameters
+        ----------
+        entity_id : :obj:`int`
+            Identification (index) number assigned to this entity.
         """
 
         self._id = entity_id
@@ -267,7 +278,7 @@ class Entity(object):
 
         if self == other: return True
         if isinstance(self, other):
-            return self._id = other.get_id()
+            return self._id == other.get_id()
         return False
 
     def __hash__(self):
@@ -304,8 +315,8 @@ class EntityBlueprint(object):
     def add_blueprint(self, component_type, blueprint):
         """ Add the input blueprint to this EntityBlueprint.
 
-        Parameters:
-        ===========
+        Parameters
+        ----------
         component_type : :class:`ComponentType`
             Which component the blueprint is for.
         blueprint : :class:`ComponentBlueprint`
@@ -379,7 +390,7 @@ class EntityManager(object):
 
 if __name__ == "__main__":
 
-    cm = ComponentManager()
+    cm = ComponentManager(None)
     ct1 = _TestComponent1(1, 2)
     mapper = cm.get_mapper(ct1.get_class())
     type_ = cm.get_type_for(ct1.get_class())
