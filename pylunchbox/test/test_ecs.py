@@ -38,7 +38,16 @@ class StatBlueprint(DiceBlueprint):
 
         return StatComponent(self.roll())
 
+def run_test():
+
+    type_ = ecs.ComponentType(0, StatComponent)
+
+    blueprint = StatBlueprint(type_, 2, 6, 3)
+    comp1 = blueprint.create()
+    comp2 = blueprint.create()
+    print comp1.value
+    print comp2.value
+
 if __name__ == "__main__":
 
-    comp1 = (1, 3)
-    print comp1.value
+    run_test()
