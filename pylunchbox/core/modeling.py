@@ -101,7 +101,11 @@ class MeshBundle(dict):
 
     pass
 
-class MeshComponent(Component): pass
+class MeshComponent(Component):
+
+    def __init__(self, bundle=None):
+
+        self._bundle = bundle
 
 class ModelLoader(object):
     """ The ModelLoader class is a helper class used to load mesh/model data
@@ -112,17 +116,26 @@ class ModelLoader(object):
         self._meshes = dict()
 
     def load_mesh(self, name, filename):
-        """ Load in a mesh from the input data file. """
+        """ Load in a mesh from the input data file. 
+        
+        Parameters
+        ----------
+        name : :obj:`str`
+            The lookup name used to save the meshes in the internal mesh 
+            container.
+        filename : :obj:`str`
+            The path and name for the file containing the mesh's data.
+        """
 
         ext = filename.strip().split(".")[-1]
 
-        if ext == "obj":
+        # Select the proper loader based upon the file extension
+        if ext == "obj": # Wavefront
             mesh = self.load_mesh_from_obj(filename, True, True)
         else:
             return
 
         if mesh:
-            print "(1)", name
             if name in self._meshes:
                 i = 1
                 while True:
@@ -138,12 +151,18 @@ class ModelLoader(object):
     def load_mesh_from_obj(self, filename, flip_uv=True, keep_subs=False):
         """ Load the mesh data contained in the input Wavefront file.
 
-        Paramters:
-        ==========
-        * filename (:obj:`string`): Path and name of the wavefront file.
-        * flip_uv (:obj:`bool`): Flag to flip the uv.y coordinates.
-        * keep_subs (:obj:`bool`): Flag to keep each sub section as seperate
-          meshes.  If :True: will return a list of meshes.
+        Paramters
+        ---------
+        filename : :obj:`str`
+            Path and name of the wavefront file.
+        flip_uv : :obj:`bool`, default `True`
+            Flag to flip the uv.y coordinates.
+        keep_subs : :obj:`bool`, default `True`
+            Flag to keep each subsection as seperate meshes.
+            
+        Returns
+        -------
+        :class:`MeshBundle`
         """
 
         pos = [] ; apos = []

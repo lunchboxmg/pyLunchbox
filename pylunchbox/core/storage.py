@@ -99,6 +99,7 @@ class Bag(object):
         self._contents = empty(size, dtype=type_)
         self._type = type_
         self._size = 0
+        self._cursor = 0
 
     def add(self, item):
         """ Add an item to this bag. """
@@ -161,11 +162,33 @@ class Bag(object):
 
         return self._contents.size
 
+    def __iter__(self):
+        """ Overloaded iterator function. """
+        
+        self._cursor = -1
+        return self
+
+    def next(self):
+        """ Overloaded next function for iterating over bag.
+
+        Returns
+        -------
+        tuple : (object, int)
+             The contents along with the index of each item.
+        """
+
+        while self._cursor < self._size:
+            item = self.unsafe_get(self._cursor)
+            self._cursor += 1
+            if item is not None:
+                return item, self._cursor - 1
+        raise StopIteration()
+    
 class _Dummy(object):
 
     def __init__(self, a, b):
 
-        self.a = a
+        self.a = aS
         self.b = b
 
     def __str__(self): return "Dummy({:d},{:d})".format(self.a, self.b)
@@ -199,3 +222,11 @@ if __name__ == "__main__":
     print isinstance(d2, test_bag._type)
 
     print test_bag.add(d2)
+
+    for i in xrange(10):
+
+        if i % 3: continue
+        test_bag.set(_Dummy2(i, 2*i), i)
+
+    for item, index in test_bag:
+        print item, index 

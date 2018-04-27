@@ -76,6 +76,16 @@ class ComponentType(object):
     """ The ComponentType class describe the component ... TODO. """
 
     def __init__(self, index, base):
+        """ Constructor.
+
+        Paramters
+        ---------
+        index : :obj:`int`
+            Indexing number for this type.  Used as a hash for quick lookup.
+            Each type SHOULD have its own unique index!
+        base : :class:`Component`
+            Reference to the component class associated with this type.
+        """
 
         self._index = index
         self._base = base
@@ -127,7 +137,15 @@ class ComponentMapper(object):
         self._contents = Bag(type, size)
 
     def create(self, entity_id, blueprint=None):
-        """ Create a new component for this entity. """
+        """ Create a new component for this entity.
+        
+        Parameters
+        ----------
+        entity_id : :obj:`int`
+            Identification (index) number for the entity.
+        blueprint : :class:`ComponentBlueprint`
+            Instructions for initalizing the data for this component.
+        """
 
         if self.has(entity_id):
             return self._contents.get(entity_id)
@@ -137,12 +155,26 @@ class ComponentMapper(object):
         return component
 
     def get(self, entity_id):
-        """ Get the component for the input entity's id. """
+        """ Get the component for the input entity's id.
+
+        Parameters
+        ----------
+        entity_id : :obj:`int`
+            Identification (index) number for the entity.
+        """
 
         return self._contents.get(entity_id)
 
     def set(self, entity_id, component):
-        """ Set the component for this entity. """
+        """ Set the component for this entity.
+        
+        Parameters
+        ----------
+        entity_id : :obj:`int`
+            Identification (index) number for the entity.
+        component : :class:`Component`
+            The component that the user wants to associate with the entity.
+        """
 
         self._contents.set(component, entity_id)
 
@@ -172,8 +204,14 @@ class ComponentMapper(object):
 
         if self._contents.get_size() <= entity_id: return False
         return self._contents.get(entity_id) == None
-    
+
+    def iterate(self):
+        """ Iterate over the contents of this mapper. """
+
+        
+
     def __str__(self):
+        """ Overloaded string conversion operator. """
 
         return "ComponentMapper<{:s}>".format(self._type.__name__)
 
