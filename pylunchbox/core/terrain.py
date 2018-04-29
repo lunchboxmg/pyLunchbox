@@ -1,4 +1,12 @@
-class Terrain(object): pass
+from numpy import zeros as _zeros
+
+class Terrain(object): 
+
+    def create_meshgrid(self, width, height):
+
+        size = width * height
+
+
 
 class FlatTerrain(Terrain):
 
