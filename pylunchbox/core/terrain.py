@@ -1,12 +1,24 @@
 from numpy import zeros as _zeros
 
-class Terrain(object): 
+__author__
 
-    def create_meshgrid(self, width, height):
+from noise
 
-        size = width * height
+class Terrain(object):
 
+    def __init__(self, width, height):
 
+        self._elevations = _zeros(width*height)
+
+    def get_elevation(self, x, z):
+        """ Retrieve the elevation at the given coordinate (x, z). """
+
+        return self._elevations[x + z]
+
+class TerrainGenerator(object):
+
+    def __init__(self):
+        pass
 
 class FlatTerrain(Terrain):
 
