@@ -192,6 +192,16 @@ class Vector4f(Vector3f):
 
         return Vector3f(self._x, self._y, self._z)
 
+def calc_surface_normal(p1, p2, p3):
+
+    u = p2 - p1
+    v = p3 - p1
+
+    nx = u.y * v.z - u.z * v.y
+    ny = u.z * v.x - u.x * v.z 
+    nz = u.x * v.y - u.y * v.x
+
+    return Vector3f(nx, ny, nz)
 
 def translate(m, v):
     """ Perform a translation on the input matrix `m` using `v` position
