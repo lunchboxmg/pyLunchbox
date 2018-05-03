@@ -1,4 +1,4 @@
- [[https://github.com/username/lunchboxmg/blob/master/pyLunchbox/pylunchbox/res/logo.png |alt=octocat]]
+ ![alt test](https://github.com/username/lunchboxmg/blob/master/pyLunchbox/pylunchbox/res/logo.png)
  
 # pylunchbox
 Python OpenGL framework.
