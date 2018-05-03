@@ -1,3 +1,5 @@
+ [[https://github.com/username/lunchboxmg/blob/master/pyLunchbox/pylunchbox/res/logo.png |alt=octocat]]
+ 
 # pylunchbox
 Python OpenGL framework.
 
