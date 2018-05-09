@@ -10,12 +10,21 @@ class World(object):
 
     def __init__(self):
 
-        self.batch = memory.StaticBatch(memory.MemoryManager(1000))
+        self.batch = memory.StaticBatch(memory.MemoryManager(1000), self)
         self.loader = modeling.ModelLoader()
-        self.cube = self.loader.load_mesh("Cube", "../res/cube.obj")
         
         self.em = ecs.EntityManager(self)
         self.cm = ecs.ComponentManager(self)
+        
+        self.cube = self.loader.load_mesh("Cube", "../res/cube.obj")
+        
+        e_cube = self.em.create()
+        m_cube = self.cm.create(e_cube.get_id(), modeling.MeshComponent)
+        m_cube.bundle = self.cube['cube']
+        
+        self.batch.add(e_cube, m_cube)
+        
+        
 
 if __name__ == "__main__":
     
@@ -32,4 +41,6 @@ if __name__ == "__main__":
     
     # Now we need a way to load the mesh from the batch into the gpu
     print world.cm.get_type_for(modeling.MeshComponent)
+    world.batch.destroy()
+    
 

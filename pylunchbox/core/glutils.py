@@ -189,7 +189,7 @@ class Vao(object):
 
     def __init__(self):
 
-        self._id = glGenVertexArrays()
+        self._id = glGenVertexArrays(1)
         self._temp_num_attribs = -1
 
     def bind(self):
@@ -217,7 +217,7 @@ class Vao(object):
     def destroy(self):
         """ Delete this VAO from the GPU. """
 
-        glDeleteVertexArrays(self._id)
+        glDeleteVertexArrays(1, [self._id])
 
     def get_id(self):
         """ The the GPU id assigned to this VAO. """
@@ -233,7 +233,7 @@ class Vbo(object):
     def __init__(self):
         """ Constructor. """
 
-        self._id = glGenBuffers()
+        self._id = glGenBuffers(1)
         self._temp_target = -1
 
     def bind(self, target):
@@ -272,7 +272,7 @@ class Vbo(object):
 
         glBufferData(target, data.nbytes, data, usage)
 
-    def upload_sub(self, target, offset, data):
+    def upload_sub(self, offset, data):
         """ Upload the input data to a portion of this buffer object.
 
         Parameters:
@@ -291,9 +291,9 @@ class Vbo(object):
         """
 
         datatype_size = data.nbytes / data.size
-        glBufferSubData(target, offset*datatype_size, data.nbytes, data)
+        glBufferSubData(self._temp_target, offset*datatype_size, data.nbytes, data)
 
     def destroy(self):
         """ Tell the GPU that we are done using this buffer object. """
 
-        glDeleteBuffers(self._id)
+        glDeleteBuffers(1, [self._id])

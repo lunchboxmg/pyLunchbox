@@ -13,7 +13,7 @@ TODO:
 
 import numpy as np
 from numpy import zeros as _zeros
-from glutils import Vao, Vbo
+from glutils import Vao, Vbo, GL_ARRAY_BUFFER
 
 __author__ = "lunchboxmg"
 
@@ -215,8 +215,8 @@ class MemoryManager(object):
 
         # GPU vertex array, buffer object references
         self._data = _zeros(max_size * MemoryChunk.MAX_FLOAT_COUNT)
-        self._vao = -1
-        self._vbo = -1
+        self._vao = Vao()
+        self._vbo = Vbo()
 
     def allocate(self, data):
         """ Allocate a memory chunk for the input `data`.  Will use an empty
@@ -249,7 +249,10 @@ class MemoryManager(object):
         """ Internal function to place the data within the vertex array/buffer
         objects. """
 
-        pass
+        vbo = self._vbo
+        vbo.bind(GL_ARRAY_BUFFER)
+        vbo.upload_sub(GL_ARRAY_BUFFER, start, data)
+        vbo.unbind()
 
     def remove(self, chunk):
         """ Remove the input `chunk` from this batch. """
@@ -389,7 +392,8 @@ class MemoryManager(object):
     def destroy(self):
         """ Kill this memory manager. """
 
-        # Destroy the vao, vbo
+        self._vbo.destroy()
+        self._vao.destroy()
         self._data = None
         self._empty = None
 
@@ -399,7 +403,7 @@ class StaticBatch(Batch):
     """ The StaticBatch class if the batch system for objects whose vertex data
     generally does not change on a regular basis. """
 
-    def __init__(self, manager):
+    def __init__(self, manager, world):
         """ Constructor.
 
         Parameters:
@@ -409,11 +413,13 @@ class StaticBatch(Batch):
         """
 
         self._manager = manager
+        self._world = world
         self._entity_map = dict()
 
-    def add(self, entity): pass
+    def add(self, entity, mesh_component):
 
         # Get the entity's mesh data
+        bundle = mesh_component.bundle
         # Create a memory chunk for the data
         # NOTE: As this is static data, make sure to transform the data first
         # Add the data to the master array
@@ -436,7 +442,7 @@ class StaticBatch(Batch):
         """ Kill this batch and free the linked memory in this batch's 
         manager. """
 
-        pass
+        self._manager.destroy()
 
 class DynamicBatch(Batch):
     """ Handles batches for mesh data that is constantly being altered. """

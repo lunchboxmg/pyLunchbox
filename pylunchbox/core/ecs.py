@@ -250,6 +250,10 @@ class ComponentManager(object):
 
         return self.get_mapper(component_class).create(entity_id, blueprint)
 
+    def get(self, entity_id, component_class):
+        
+        return self.get_mapper(component_class).get(entity_id)
+
     def get_mapper(self, component_class):
         """ Retrieve the bag of components corresponding to the input 
         component's class. """
