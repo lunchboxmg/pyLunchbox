@@ -105,7 +105,7 @@ class MeshComponent(Component):
 
     def __init__(self, bundle=None):
 
-        self._bundle = bundle
+        self.bundle = bundle
 
 class ModelLoader(object):
     """ The ModelLoader class is a helper class used to load mesh/model data
@@ -254,9 +254,9 @@ class ModelLoader(object):
 if __name__ == "__main__":
 
     name = "TEST"
-    #filename = "res/cube.obj"
+    filename = "../res/cube.obj"
     #filename = "res/Birch1.obj"
-    filename = "res/stall.obj"
+    #filename = "res/stall.obj"
     #filename = "res/dragon.obj"
 
     test_loader = ModelLoader()
@@ -273,7 +273,7 @@ if __name__ == "__main__":
         print mesh.vertices[0]
 
     name = "TEST"
-    filename = "res/Birch1.obj"
+    filename = "../res/Birch1.obj"
     data = test_loader.load_mesh(name, filename)
 
     for name, bundle in test_loader.iter_meshes():

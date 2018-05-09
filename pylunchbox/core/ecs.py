@@ -396,6 +396,7 @@ class EntityManager(object):
             entity = Entity(self._next_id)
         self._entities.set(entity, self._next_id)
         self._next_id += 1
+        return entity
 
     def remove(self, entity_id): pass
 

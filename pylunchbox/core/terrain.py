@@ -56,6 +56,8 @@ class FlatTerrainGenerator(TerrainGenerator):
                 p2 = Vector3f(xoffset + ix, 0, zoffset + iz + 1)
                 p3 = Vector3f(xoffset + ix + 1, 0, zoffset + iz + 1)
                 p4 = Vector3f(xoffset + ix + 1, 0, zoffset + iz)
+                
+                positions[index:index+6] = [p1, p2, p4, p4, p2, p3]
 
 
 class VariableTerrainGenerator(TerrainGenerator):

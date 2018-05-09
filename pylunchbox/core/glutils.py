@@ -60,9 +60,8 @@ class UniformBool(UniformFloat):
 
     def load(self, value):
         """ Load the input `value` into this shader uniform. """
-        if value: value = 1.0
-        else: value = 0.0
-        super(UniformBool, self).load(1.0)
+
+        super(UniformBool, self).load(1.0 if value else 0.0)
 
 class UniformVector3f(UniformBase):
     """ The UniformVector3f class is used to store a Vector3f into the
