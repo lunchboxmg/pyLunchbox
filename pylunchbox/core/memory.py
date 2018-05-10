@@ -12,12 +12,14 @@ TODO:
 """
 
 import numpy as np
-from numpy import zeros as _zeros
+from numpy import zeros as _zeros, float32 as FLOAT32
 from functools import partial
+from ctypes import c_void_p
 
 __author__ = "lunchboxmg"
 
-from glutils import Vao, Vbo, GL_ARRAY_BUFFER
+from glutils import (Vao, Vbo, GL_ARRAY_BUFFER, GL_STATIC_DRAW, 
+                     glVertexAttribPointer, GL_FLOAT, GL_FALSE)
 from modeling import MeshComponent
 
 class MemoryChunk(object):
@@ -202,30 +204,41 @@ class MemoryManager(object):
 
     MAX_REFACTOR = 300 # Maximum amount of data to be refactored within a step
 
-    def __init__(self, max_size):
+    def __init__(self, max_size, stride=8):
         """ Constructor.
 
-        Parameters:
-        ===========
-        * max_size (:obj:`int`): The maximum number of vertices housed within
-          this manager's batch.
+        Parameters
+        -----------
+        max_size : (:obj:`int`)
+            The maximum number of vertices housed within this manager's batch.
+        stride : (:obj:`int`)
+            The element size of one vertex.
         """
 
         self._max_size = max_size
+        self._stride = stride
         self._empty = []
         self._last = None
         self._index_last = 0
 
         # GPU vertex array, buffer object references
-        self._data = _zeros(max_size * MemoryChunk.MAX_FLOAT_COUNT)
-        self._vao = Vao()
-        self._vbo = Vbo()
+        self._data = _zeros(max_size * stride, dtype=FLOAT32)
+        self._vao = vao = Vao()
+        vao.bind()
+        self._vbo = vbo = Vbo()
+        vbo.bind(GL_ARRAY_BUFFER)
+        vbo.allocate(self._data.nbytes, GL_STATIC_DRAW)
+        glVertexAttribPointer(0, 3, GL_FLOAT , GL_FALSE, stride*4, c_void_p(0))
+        glVertexAttribPointer(1, 2, GL_FLOAT , GL_FALSE, stride*4, c_void_p(3*4))
+        glVertexAttribPointer(2, 3, GL_FLOAT , GL_FALSE, stride*4, c_void_p(5*4))
+        vbo.unbind()
+        vao.unbind()
 
     def allocate(self, data):
         """ Allocate a memory chunk for the input `data`.  Will use an empty
         chunk if one is available to minimize size of the batch. """
 
-        if (len(data) + self._index_last) / 9 > self._max_size: # TODO: Incorporate VertexFormat
+        if (len(data) + self._index_last) / self._stride > self._max_size:
             print "ERROR: Batch is full!"
             return None
 
@@ -254,7 +267,9 @@ class MemoryManager(object):
 
         vbo = self._vbo
         vbo.bind(GL_ARRAY_BUFFER)
-        vbo.upload_sub(GL_ARRAY_BUFFER, start, data)
+        vbo.upload_sub(start, data)
+        # TODO: Fix hardcode
+        stride = self._stride * 4
         vbo.unbind()
 
     def remove(self, chunk):
@@ -426,15 +441,11 @@ class StaticBatch(Batch):
 
         # Get the entity's mesh data
         component = self._get_mesh(entity.get_id())
-        print ">>>", component
-        print self._mtype
-        print component.bundle.pack()
-        pass
         # TODO: Once the meshbundle has been pulled for the input entity, we
         #       must transform (interleave) the data into a flattened array.
-        # Could row_stack, then transpose, then flatten
+        data = component.bundle.pack()
         # Create a memory chunk for the data
-        #self._manager.allocate(bundle)
+        self._manager.allocate(data)
         # NOTE: As this is static data, make sure to transform the data first
         # Add the data to the master array
 
@@ -457,6 +468,11 @@ class StaticBatch(Batch):
         manager. """
 
         self._manager.destroy()
+        
+    def get_vao(self):
+        """ Retrieve the Vertex Array Object associated with this batch. """
+        
+        return self._manager._vao
 
 class DynamicBatch(Batch):
     """ Handles batches for mesh data that is constantly being altered. """

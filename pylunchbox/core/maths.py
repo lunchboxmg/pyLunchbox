@@ -1,8 +1,8 @@
 import numpy as np
-from numpy import ndarray, identity, zeros
+from numpy import ndarray, identity, zeros, cross
 from numpy import sqrt as npsqrt, sum as npsum, dot
 
-from math import sin, cos
+from math import sin, cos, tan
 from constants import *
 # Type Conversions
 

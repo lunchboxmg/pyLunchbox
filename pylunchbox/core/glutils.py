@@ -1,5 +1,8 @@
 from OpenGL.GL import *
 import OpenGL.GL.shaders as GLShaders
+from ctypes import c_void_p
+
+__author__ = "lunchboxmg"
 
 from maths import Vector2f, Vector3f
 
@@ -122,7 +125,7 @@ class ShaderProgram(object):
         """ Store the locations for the input collection of uniforms. """
 
         for uniform in uniforms:
-            uniform.store_locations(self._id_program)
+            uniform.store_location(self._id_program)
         glValidateProgram(self._id_program)
 
     def __bind_attribute(self, attrib, name):
@@ -158,6 +161,7 @@ class ShaderProgram(object):
 
         if not glGetShaderiv(id_, GL_COMPILE_STATUS):
             info = glGetShaderInfoLog(id_)
+            print info
             # TODO: PRINT ERROR
             return False
         return True
@@ -191,6 +195,7 @@ class Vao(object):
 
         self._id = glGenVertexArrays(1)
         self._temp_num_attribs = -1
+        self._vbos = []
 
     def bind(self):
         """ Tell the GPU that we are going to use this VAO. """
@@ -230,7 +235,7 @@ class Vbo(object):
     The VBO provides a method of uploading vertex data associated with a VAO
     to the GPU. """
 
-    def __init__(self):
+    def __init__(self, size=None):
         """ Constructor. """
 
         self._id = glGenBuffers(1)
@@ -254,6 +259,17 @@ class Vbo(object):
         """ Tell the GPU we are done using this buffer object. """
 
         glBindBuffer(self._temp_target, 0)
+
+    def allocate(self, size, usage, lengths):
+        """ Preallocate the VBO to the input `size`. """
+        
+        glBufferData(self._temp_target, size, c_void_p(0), usage)
+        stride = sum(lengths) * 4 # TODO
+        total = 0
+        for i, length in enumerate(lengths):
+            glVertexAttribPointer(i, length, GL_FLOAT, GL_FALSE, 
+                                  stride, c_void_p(total))
+            total += length
 
     def upload(self, target, data, usage):
         """ Upload the `input` data to the GPUself.

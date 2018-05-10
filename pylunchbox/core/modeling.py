@@ -94,9 +94,12 @@ class MeshData(object):
         
     def pack(self):
         
-        start = _time()
         vsize = self.vertices[0].size
-        tsize = self.uvs[0].size
+        try:
+            tsize = self.uvs[0].size
+        except:
+            self.uvs = [Vector2f(0,0) for i in xrange(len(self.vertices))]
+            tsize = self.uvs[0].size
         nsize = self.normals[0].size
         toffset = vsize
         noffset = toffset + tsize
@@ -111,14 +114,9 @@ class MeshData(object):
             r[p + toffset : p + noffset] = vt
             r[p + noffset : p + loffset] = vn
             p += stride
-        end = _time()
-        print end - start
         
-        start = _time()
-        a = np.array(zip(self.vertices, self.uvs, self.normals)).flatten()
-        r = np.concatenate(a)
-        end = _time()
-        print end - start
+        #a = np.array(zip(self.vertices, self.uvs, self.normals)).flatten()
+        #r = np.concatenate(a)
         
         return r
 
