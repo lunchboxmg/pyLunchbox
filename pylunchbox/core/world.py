@@ -10,20 +10,24 @@ class World(object):
 
     def __init__(self):
 
+        # Initialize the ECS architecture for this world
+        self.em = ecs.EntityManager(self)
+        self.cm = ecs.ComponentManager(self)
+
         self.batch = memory.StaticBatch(memory.MemoryManager(1000), self)
         self.loader = modeling.ModelLoader()
         
-        self.em = ecs.EntityManager(self)
-        self.cm = ecs.ComponentManager(self)
-        
-        self.cube = self.loader.load_mesh("Cube", "../res/cube.obj")
+        filename = "../res/cube.obj"
+        #filename = "../res/stall.obj"
+        #filename = "../res/dragon.obj"
+        self.cube = self.loader.load_mesh("Cube", filename)
         
         e_cube = self.em.create()
         m_cube = self.cm.create(e_cube.get_id(), modeling.MeshComponent)
-        m_cube.bundle = self.cube['cube']
+        m_cube.bundle = self.cube
+        print m_cube.bundle
         
-        self.batch.add(e_cube, m_cube)
-        
+        self.batch.add(e_cube)
         
 
 if __name__ == "__main__":

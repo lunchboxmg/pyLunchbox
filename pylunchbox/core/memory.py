@@ -13,9 +13,12 @@ TODO:
 
 import numpy as np
 from numpy import zeros as _zeros
-from glutils import Vao, Vbo, GL_ARRAY_BUFFER
+from functools import partial
 
 __author__ = "lunchboxmg"
+
+from glutils import Vao, Vbo, GL_ARRAY_BUFFER
+from modeling import MeshComponent
 
 class MemoryChunk(object):
     """ The MemoryChunk class keeps the indexing information for an entity's
@@ -415,12 +418,23 @@ class StaticBatch(Batch):
         self._manager = manager
         self._world = world
         self._entity_map = dict()
+        self._mtype = world.cm.get_type_for(MeshComponent)
+        self._get_mesh = partial(world.cm.get, component_type=self._mtype)
+        print self._get_mesh
 
-    def add(self, entity, mesh_component):
+    def add(self, entity):
 
         # Get the entity's mesh data
-        bundle = mesh_component.bundle
+        component = self._get_mesh(entity.get_id())
+        print ">>>", component
+        print self._mtype
+        print component.bundle.pack()
+        pass
+        # TODO: Once the meshbundle has been pulled for the input entity, we
+        #       must transform (interleave) the data into a flattened array.
+        # Could row_stack, then transpose, then flatten
         # Create a memory chunk for the data
+        #self._manager.allocate(bundle)
         # NOTE: As this is static data, make sure to transform the data first
         # Add the data to the master array
 

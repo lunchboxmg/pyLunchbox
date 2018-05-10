@@ -134,7 +134,7 @@ class ComponentMapper(object):
         """
 
         self._type = type_
-        self._contents = Bag(type, size)
+        self._contents = Bag(type_, size)
 
     def create(self, entity_id, blueprint=None):
         """ Create a new component for this entity.
@@ -250,9 +250,9 @@ class ComponentManager(object):
 
         return self.get_mapper(component_class).create(entity_id, blueprint)
 
-    def get(self, entity_id, component_class):
+    def get(self, entity_id, component_type):
         
-        return self.get_mapper(component_class).get(entity_id)
+        return self._mappers.get(component_type.get_index()).get(entity_id)
 
     def get_mapper(self, component_class):
         """ Retrieve the bag of components corresponding to the input 

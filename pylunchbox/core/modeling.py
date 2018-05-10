@@ -1,11 +1,12 @@
 """ The modeling module is repsonible for handling mesh data.
 
 """
-from maths import Vector2f, Vector3f
 import numpy as np
+from time import time as _time
 
 __author__ = "lunchboxmg"
 
+from maths import Vector2f, Vector3f
 from ecs import Component
 
 class VertexVector(object):
@@ -90,6 +91,36 @@ class MeshData(object):
         self.vertices = vertices
         self.uvs = uvs
         self.normals = normals
+        
+    def pack(self):
+        
+        start = _time()
+        vsize = self.vertices[0].size
+        tsize = self.uvs[0].size
+        nsize = self.normals[0].size
+        toffset = vsize
+        noffset = toffset + tsize
+        loffset = noffset + nsize
+    
+        stride = vsize + tsize + nsize
+        r = np.empty(len(self.vertices) * stride, dtype=Vector3f._UNIT)
+
+        p = 0
+        for v, vt, vn in zip(self.vertices, self.uvs, self.normals):
+            r[p : p + vsize] = v
+            r[p + toffset : p + noffset] = vt
+            r[p + noffset : p + loffset] = vn
+            p += stride
+        end = _time()
+        print end - start
+        
+        start = _time()
+        a = np.array(zip(self.vertices, self.uvs, self.normals)).flatten()
+        r = np.concatenate(a)
+        end = _time()
+        print end - start
+        
+        return r
 
     def get_vertex_count(self):
         """ Retrieve the number of vertices for this model. """
@@ -99,13 +130,25 @@ class MeshData(object):
 class MeshBundle(dict):
     """ The MeshBundle class is a container object for meshes. """
 
-    pass
+    def pack(self):
+        
+        r = []
+        for v in self.itervalues():
+            r.append(v.pack())
+        return np.concatenate(r)
 
 class MeshComponent(Component):
 
     def __init__(self, bundle=None):
 
         self.bundle = bundle
+    
+    def __repr__(self): return self.__str__()
+
+    def __str__(self):
+        
+        m = "<MeshComponent>(size={:d})"
+        return m.format(len(self.bundle) if self.bundle is not None else 0)
 
 class ModelLoader(object):
     """ The ModelLoader class is a helper class used to load mesh/model data
