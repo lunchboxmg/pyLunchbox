@@ -20,6 +20,7 @@ __author__ = "lunchboxmg"
 
 from glutils import (Vao, Vbo, GL_ARRAY_BUFFER, GL_STATIC_DRAW, 
                      glVertexAttribPointer, GL_FLOAT, GL_FALSE)
+from glutils import create_batch_buffer
 from modeling import MeshComponent
 
 class MemoryChunk(object):
@@ -230,6 +231,7 @@ class MemoryManager(object):
         vbo.allocate(self._data.nbytes, GL_STATIC_DRAW, [3,2,3])
         vbo.unbind()
         vao.unbind()
+#        self._vao, self._vbo = create_batch_buffer(self._data.nbytes, [3,2,3], GL_STATIC_DRAW)
 
     def allocate(self, data):
         """ Allocate a memory chunk for the input `data`.  Will use an empty

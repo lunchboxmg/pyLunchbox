@@ -3,6 +3,8 @@ from numpy import ndarray, identity, zeros, cross
 from numpy import sqrt as npsqrt, sum as npsum, dot
 from math import sin, cos, tan
 
+__author__ = "lunchboxmg"
+
 from ecs import Component
 from constants import *
 # Type Conversions
@@ -254,6 +256,28 @@ class Transformation(Component):
         
         return self._position
     
+    def set_rotation(self, new_rotation):
+        """ Set the rotation of this entity. """
+
+        self._rotation = new_rotation
+        self._dirty = True
+
+    def get_rotation(self):
+        """ Retrieve the current rotation of this entity. """
+        
+        return self._rotation
+
+    def set_scale(self, new_scale):
+        """ Set the position of this entity. """
+
+        self._scale = new_scale
+        self._dirty = True
+
+    def get_scale(self):
+        """ Retrieve the current position of this entity. """
+        
+        return self._scale
+
     def is_dirty(self):
         """ Determine if any of the transformation parameters has been 
         altered. """

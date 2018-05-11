@@ -23,8 +23,8 @@ class World(object):
         self.loader = modeling.ModelLoader()
         
         #filename = "../res/cube.obj"
-        filename = "../res/stall.obj"
-        filename = "../res/birch1.obj"
+        #filename = "../res/stall.obj"
+        #filename = "../res/birch1.obj"
         filename = "../res/dragon.obj"
         self.cube = self.loader.load_mesh("Cube", filename)
         
@@ -73,7 +73,7 @@ class TestRenderer(object):
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
         glClearColor(0.2, 0.2, 0.2, 1.0)
         glCullFace(GL_FRONT_AND_BACK)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        #glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         self.shader.start()
         
         t = device.Time.get_time_current()
@@ -82,14 +82,14 @@ class TestRenderer(object):
         x = r * maths.cos(w*t)
         z = r * maths.sin(w*t)
 
-        view = maths.look_at_RH(maths.Vector3f(x, 15, z), 
-                                maths.Vector3f(0, 10, 0),
+        view = maths.look_at_RH(maths.Vector3f(x, 10, z), 
+                                maths.Vector3f(0, 0, 0),
                                 maths.Vector3f(0, 1, 0))
         self.shader.view.load(view)
         model = maths.identity(4, dtype=maths.FLOAT32)
-        model = maths.translate(model, maths.Vector3f(5, 0, 0))
-        model = maths.rotate(model, -t, maths.Vector3f(1, 0, 0))
-        model = maths.scale(model, maths.Vector3f(maths.sin(w*w*t), 1, 1))
+        #model = maths.translate(model, maths.Vector3f(5, 0, 0))
+        #model = maths.rotate(model, -t, maths.Vector3f(1, 0, 0))
+        #model = maths.scale(model, maths.Vector3f(maths.sin(w*w*t), 1, 1))
         self.shader.model.load(model)
         size = self.world.batch._manager._index_last
 

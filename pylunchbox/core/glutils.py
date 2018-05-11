@@ -219,10 +219,17 @@ class Vao(object):
 
         for i in xrange(self._temp_num_attribs): glDisableVertexAttribArray(i)
 
-    def destroy(self):
+    def destroy(self, include_vbos=False):
         """ Delete this VAO from the GPU. """
 
+        if include_vbos:
+            for vbo in self._vbos: vbo.destroy()
         glDeleteVertexArrays(1, [self._id])
+
+    def attach_vbo(self, vbo):
+        """ Attach a Vertex Buffer Object to this VAO. """
+
+        self._vbos.append(vbo)
 
     def get_id(self):
         """ The the GPU id assigned to this VAO. """
@@ -239,6 +246,8 @@ class Vbo(object):
         """ Constructor. """
 
         self._id = glGenBuffers(1)
+
+        self._usage = None
         self._temp_target = -1
 
     def bind(self, target):
@@ -260,48 +269,57 @@ class Vbo(object):
 
         glBindBuffer(self._temp_target, 0)
 
-    def allocate(self, size, usage, lengths):
+    def allocate(self, size, usage, lengths=None):
         """ Preallocate the VBO to the input `size`. """
         
         glBufferData(self._temp_target, size, c_void_p(0), usage)
-        stride = sum(lengths) * 4 # TODO
-        total = 0
-        for i, length in enumerate(lengths):
-            glVertexAttribPointer(i, length, GL_FLOAT, GL_FALSE, 
-                                  stride, c_void_p(total))
-            total += length
+        self._usage = usage
+        
+        if lengths:
+            stride = sum(lengths) * 4 # TODO
+            total = 0
+            for i, length in enumerate(lengths):
+                glVertexAttribPointer(i, length, GL_FLOAT, GL_FALSE, 
+                                      stride, c_void_p(total*4))
+                total += length
 
-    def upload(self, target, data, usage):
+    def upload(self, target, data, usage=None):
         """ Upload the `input` data to the GPUself.
 
-        Parameters:
-        ===========
-        * target (:obj:`int`): Specifies the target to which the buffer object
-          is bound for.
-        * data (:obj:`ndarray`): Numpy array of the data being pushed to the
-          GPU.
-        * usage (:obj:`int`): Specifies the expected usage pattern of the data
-          being stored.
+        Parameters
+        ----------
+        target : :obj:`int`
+            Specifies the target to which the buffer object is bound for.
+        data : :obj:`ndarray`
+            Numpy array of the data being pushed to the GPU.
+        usage : :obj:`int`
+            Specifies the expected usage pattern of the data being stored.
 
         NOTE: see https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBufferData.xhtml
         """
-
-        glBufferData(target, data.nbytes, data, usage)
+        
+        if usage is not None: self._usage = usage
+        if self._usage is None: 
+            m = "ERROR: Usage flag has not been set for this VBO."
+            raise TypeError(m)
+        glBufferData(target, data.nbytes, data, self._usage)
 
     def upload_sub(self, offset, data):
         """ Upload the input data to a portion of this buffer object.
 
-        Parameters:
-        ===========
-        * target (:obj:`int`): Specifies the target buffer object.
-          The symbolic constant must be GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER,
-          GL_PIXEL_PACK_BUFFER, or GL_PIXEL_UNPACK_BUFFER.
-        * offset (:obj:`int`): Specifies the offset into the buffer object's
-          data store where data replacement will begin, measured in bytes.
-        * size (:obj:`int`): Specifies the size in bytes of the data store
-          region being replaced.
-        * data (:obj:`ndarray`): Specifies the new data that will be copied into
-          the data store.
+        Parameters
+        ----------
+        target : :obj:`int`
+            Specifies the target buffer object. The symbolic constant must be 
+            GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER, GL_PIXEL_PACK_BUFFER, or 
+            GL_PIXEL_UNPACK_BUFFER.
+        offset : :obj:`int`
+            Specifies the offset into the buffer object's data store where 
+            data replacement will begin, measured in bytes.
+        size : :obj:`int`
+            Specifies the size in bytes of the data store region being replaced.
+        data : :obj:`ndarray`
+            Specifies the new data that will be copied into the data store.
 
         NOTE: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBufferSubData.xhtml
         """
@@ -313,3 +331,35 @@ class Vbo(object):
         """ Tell the GPU that we are done using this buffer object. """
 
         glDeleteBuffers(1, [self._id])
+        
+def create_batch_buffer(size, layout, usage):
+    """ Creates a vertex array and buffer for a batch.
+    
+    Parameters
+    ----------
+    size : :obj:`int`
+        The size in bytes that buffer.
+    layout : :obj:`list` of :obj:`int`
+        List of the sizes of each component of the vertex data.\n 
+        i.e., [3, 2, 3] => v(x,y,z), vt(s,t), vn(x,y,z)
+    usage : :obj:`int`
+        Specifies the expected usage pattern of the data being stored.
+        
+    Returns
+    -------
+    :class:`Vao`, :class:`Vbo`
+    """
+    
+    vao = Vao()
+    vao.bind()
+
+    vbo = Vbo()
+    vbo.bind(GL_ARRAY_BUFFER)
+    vbo.allocate(size, usage, layout)
+    vao.attach_vbo(vbo)
+    
+    vbo.unbind()
+    vao.unbind()
+    
+    return vao, vbo
+    

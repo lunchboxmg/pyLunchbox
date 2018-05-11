@@ -104,7 +104,7 @@ class MeshData(object):
         toffset = vsize
         noffset = toffset + tsize
         loffset = noffset + nsize
-    
+        
         stride = vsize + tsize + nsize
         r = np.empty(len(self.vertices) * stride, dtype=Vector3f._UNIT)
 
