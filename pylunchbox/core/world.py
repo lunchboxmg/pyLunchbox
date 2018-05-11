@@ -86,7 +86,11 @@ class TestRenderer(object):
                                 maths.Vector3f(0, 10, 0),
                                 maths.Vector3f(0, 1, 0))
         self.shader.view.load(view)
-        self.shader.model.load(maths.identity(4, dtype=maths.FLOAT32))
+        model = maths.identity(4, dtype=maths.FLOAT32)
+        model = maths.translate(model, maths.Vector3f(5, 0, 0))
+        model = maths.rotate(model, -t, maths.Vector3f(1, 0, 0))
+        model = maths.scale(model, maths.Vector3f(maths.sin(w*w*t), 1, 1))
+        self.shader.model.load(model)
         size = self.world.batch._manager._index_last
 
         vao = self.world.batch.get_vao()

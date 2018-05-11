@@ -227,10 +227,7 @@ class MemoryManager(object):
         vao.bind()
         self._vbo = vbo = Vbo()
         vbo.bind(GL_ARRAY_BUFFER)
-        vbo.allocate(self._data.nbytes, GL_STATIC_DRAW)
-        glVertexAttribPointer(0, 3, GL_FLOAT , GL_FALSE, stride*4, c_void_p(0))
-        glVertexAttribPointer(1, 2, GL_FLOAT , GL_FALSE, stride*4, c_void_p(3*4))
-        glVertexAttribPointer(2, 3, GL_FLOAT , GL_FALSE, stride*4, c_void_p(5*4))
+        vbo.allocate(self._data.nbytes, GL_STATIC_DRAW, [3,2,3])
         vbo.unbind()
         vao.unbind()
 

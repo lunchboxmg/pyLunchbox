@@ -1,8 +1,9 @@
 import numpy as np
 from numpy import ndarray, identity, zeros, cross
 from numpy import sqrt as npsqrt, sum as npsum, dot
-
 from math import sin, cos, tan
+
+from ecs import Component
 from constants import *
 # Type Conversions
 
@@ -192,7 +193,76 @@ class Vector4f(Vector3f):
 
         return Vector3f(self._x, self._y, self._z)
 
+X_AXIS = Vector3f(1, 0, 0)
+Y_AXIS = Vector3f(0, 1, 0)
+Z_AXIS = Vector3f(0, 0, 1)
+
+V_ZERO = Vector3f(0, 0, 0)
+V_ONE = Vector3f(1, 1, 1)
+
+class Transformation(Component):
+    
+    def __init__(self, position=V_ZERO, rotation=V_ZERO, scale=V_ONE):
+        """ Constructor.
+        
+        Parameters
+        ----------
+        position : :class:`Vector3f`
+            The position the entity needs to be translated to from the origin.
+        rotation : :class:`Vector3f`, units = degrees
+            The amount of rotation about each coordinate axis. 
+        scale : :class:`Vector3f`
+            The amount to scale the mesh along each coordinate axis.
+        """
+        
+        self._position = position
+        self._rotation = rotation
+        self._scale = scale
+        self._matrix = identity(4)
+        self._dirty = True
+        
+    def update(self):
+        """ Update the internal model matrix. """
+        
+        if self._dirty:
+            r = self._rotation
+            m = identity(4)
+            m = translate(m, self._position)
+            if r.y: m = rotate(m, r.y, Y_AXIS)
+            if r.z: m = rotate(m, r.z, Z_AXIS)
+            if r.x: m = rotate(m, r.x, X_AXIS)
+            m = scale(m, self._scale)
+            self._matrix = m
+            self._dirty = False
+            return m
+        return None
+    
+    def get_matrix(self):
+        """ Get the model matrix. """
+        
+        if self._dirty: self.update()
+        return self._matrix
+    
+    def set_position(self, new_position):
+        """ Set the position of this entity. """
+
+        self._position = new_position
+        self._dirty = True
+
+    def get_position(self):
+        """ Retrieve the current position of this entity. """
+        
+        return self._position
+    
+    def is_dirty(self):
+        """ Determine if any of the transformation parameters has been 
+        altered. """
+        
+        return self._dirty
+
 def calc_surface_normal(p1, p2, p3):
+    """ Calculate the surface normal of the input points that create the
+    sides of a triangle. """
 
     u = p2 - p1
     v = p3 - p1
