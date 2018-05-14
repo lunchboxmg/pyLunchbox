@@ -292,6 +292,8 @@ class ModelLoader(object):
 
         return self._meshes.iteritems()
 
+class TextureLoader(object): pass
+
 if __name__ == "__main__":
 
     name = "TEST"

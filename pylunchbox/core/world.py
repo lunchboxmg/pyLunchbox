@@ -6,6 +6,7 @@ import modeling
 import glutils
 import device
 import maths
+import texture
 
 from glutils import *
 
@@ -18,14 +19,15 @@ class World(object):
         # Initialize the ECS architecture for this world
         self.em = ecs.EntityManager(self)
         self.cm = ecs.ComponentManager(self)
+        self.tm = texture.TextureManager(self)
 
         self.batch = memory.StaticBatch(memory.MemoryManager(300000), self)
         self.loader = modeling.ModelLoader()
         
-        #filename = "../res/cube.obj"
+        filename = "../res/cube.obj"
         #filename = "../res/stall.obj"
         #filename = "../res/birch1.obj"
-        filename = "../res/dragon.obj"
+        #filename = "../res/dragon.obj"
         self.cube = self.loader.load_mesh("Cube", filename)
         
         e_cube = self.em.create()
@@ -34,6 +36,8 @@ class World(object):
         print m_cube.bundle
         
         self.batch.add(e_cube)
+
+        self.tex_test = self.tm.load("../res/textures/wildtextures-seamless-paper-texture.jpg")
         
         self.shader = TestShader("Test",
                                  "../res/shaders/basic8.vs",
@@ -77,12 +81,12 @@ class TestRenderer(object):
         self.shader.start()
         
         t = device.Time.get_time_current()
-        r = 20
+        r = 2
         w = 0.5
         x = r * maths.cos(w*t)
         z = r * maths.sin(w*t)
 
-        view = maths.look_at_RH(maths.Vector3f(x, 10, z), 
+        view = maths.look_at_RH(maths.Vector3f(x, 1, z), 
                                 maths.Vector3f(0, 0, 0),
                                 maths.Vector3f(0, 1, 0))
         self.shader.view.load(view)
@@ -96,6 +100,8 @@ class TestRenderer(object):
         vao = self.world.batch.get_vao()
         vao.bind()
         vao.enable(3)
+        glutils.glActiveTexture(glutils.GL_TEXTURE0)
+        glutils.glBindTexture(glutils.GL_TEXTURE_2D, self.world.tex_test._id)
         glutils.glDrawArrays(glutils.GL_TRIANGLES, 0, size)
         vao.disable()
         vao.unbind()
