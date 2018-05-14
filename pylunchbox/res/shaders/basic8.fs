@@ -15,7 +15,7 @@ void main(void) {
     vec3 unit_to_light = normalize(to_light);
     
     float alpha = dot(unit_normal, unit_to_light);
-    float brightness = max(alpha, 0.25f);
+    float brightness = max(alpha, 0.1f);
     vec3 diffuse = brightness * vec3(1.0f, 1.0f, 1.0f);
     
     vec4 color_tex = texture(tex, pass_uv);

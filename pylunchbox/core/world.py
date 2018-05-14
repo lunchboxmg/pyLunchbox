@@ -24,8 +24,8 @@ class World(object):
         self.batch = memory.StaticBatch(memory.MemoryManager(300000), self)
         self.loader = modeling.ModelLoader()
         
-        filename = "../res/cube.obj"
-        #filename = "../res/stall.obj"
+        #filename = "../res/cube.obj"
+        filename = "../res/stall.obj"
         #filename = "../res/birch1.obj"
         #filename = "../res/dragon.obj"
         self.cube = self.loader.load_mesh("Cube", filename)
@@ -81,13 +81,13 @@ class TestRenderer(object):
         self.shader.start()
         
         t = device.Time.get_time_current()
-        r = 2
+        r = 20
         w = 0.5
         x = r * maths.cos(w*t)
         z = r * maths.sin(w*t)
 
-        view = maths.look_at_RH(maths.Vector3f(x, 1, z), 
-                                maths.Vector3f(0, 0, 0),
+        view = maths.look_at_RH(maths.Vector3f(x, 20, z), 
+                                maths.Vector3f(0, 10, 0),
                                 maths.Vector3f(0, 1, 0))
         self.shader.view.load(view)
         model = maths.identity(4, dtype=maths.FLOAT32)

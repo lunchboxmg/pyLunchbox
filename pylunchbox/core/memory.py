@@ -224,14 +224,7 @@ class MemoryManager(object):
 
         # GPU vertex array, buffer object references
         self._data = _zeros(max_size * stride, dtype=FLOAT32)
-        self._vao = vao = Vao()
-        vao.bind()
-        self._vbo = vbo = Vbo()
-        vbo.bind(GL_ARRAY_BUFFER)
-        vbo.allocate(self._data.nbytes, GL_STATIC_DRAW, [3,2,3])
-        vbo.unbind()
-        vao.unbind()
-#        self._vao, self._vbo = create_batch_buffer(self._data.nbytes, [3,2,3], GL_STATIC_DRAW)
+        self._vao, self._vbo = create_batch_buffer(self._data.nbytes, [3,2,3], GL_STATIC_DRAW)
 
     def allocate(self, data):
         """ Allocate a memory chunk for the input `data`.  Will use an empty
