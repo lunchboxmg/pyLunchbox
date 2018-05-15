@@ -24,8 +24,8 @@ class World(object):
         self.batch = memory.StaticBatch(memory.MemoryManager(300000), self)
         self.loader = modeling.ModelLoader()
         
-        #filename = "../res/cube.obj"
-        filename = "../res/stall.obj"
+        filename = "../res/cube.obj"
+        #filename = "../res/stall.obj"
         #filename = "../res/birch1.obj"
         #filename = "../res/dragon.obj"
         self.cube = self.loader.load_mesh("Cube", filename)
@@ -53,8 +53,10 @@ class TestShader(glutils.ShaderProgram):
         self.model = glutils.UniformMatrix4f("model")
         self.view = glutils.UniformMatrix4f("view")
         self.proj = glutils.UniformMatrix4f("proj")
+        self.camera_pos = glutils.UniformVector3f("camera_pos")
         
-        self.store_locations(self.model, self.view, self.proj)
+        self.store_locations(self.model, self.view, self.proj, 
+                             self.camera_pos)
 
 class TestRenderer(object):
     
@@ -81,13 +83,15 @@ class TestRenderer(object):
         self.shader.start()
         
         t = device.Time.get_time_current()
-        r = 20
+        r = 2
         w = 0.5
         x = r * maths.cos(w*t)
         z = r * maths.sin(w*t)
 
-        view = maths.look_at_RH(maths.Vector3f(x, 20, z), 
-                                maths.Vector3f(0, 10, 0),
+        self.camera_pos = cam = maths.Vector3f(x, 1, z)
+        self.shader.camera_pos.load(*cam)
+        view = maths.look_at_RH(self.camera_pos, 
+                                maths.Vector3f(0, 0, 0),
                                 maths.Vector3f(0, 1, 0))
         self.shader.view.load(view)
         model = maths.identity(4, dtype=maths.FLOAT32)

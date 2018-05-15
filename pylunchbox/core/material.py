@@ -7,14 +7,20 @@ ColorRGB (Vector3f)
 """
 
 from math import fabs
+import numpy as np
 
 __author__ = "lunchboxmg"
 
 from maths import Vector3f, Vector4f, FLOAT32
 
-class ColorRGB(Vector3f):
+class ColorRGB(np.ndarray):
+    """ The ColorRBG class is a 3 dimensional vector representation of the 
+    red, green, and blue components of a color. """
+    
+    _UNIT = FLOAT32
     
     def __new__(cls, r, g, b):
+        """ Internal function produces a new ndarray casted to this class. """
         
         if r < 0.0 or r > 1.0:
             r = min(fabs(r)/255.0, 1.0)
@@ -23,40 +29,69 @@ class ColorRGB(Vector3f):
         if b < 0.0 or b > 1.0:
             b = min(fabs(b)/255.0, 1.0)
         
-        obj = super(ColorRGB, cls).__new__(cls, r, g, b)
+        obj = np.asarray((r, g, b), FLOAT32).view(cls)
         return obj
     
     def __array_finalize__(self, obj):
+        """ Internal function to finalize additional attribues added to the 
+        base ndarray class. """
         
         if obj is None: return
 
-    def get_r(self): return self[0]
+    def get_r(self): 
+        """ Retrieve the value of this color's RED component. """
+        
+        return self[0]
+
     def set_r(self, value): 
+        """ Set the value of this color's RED component.
+        
+        NOTE: The value will be normalized if above 1. """
+        
         if value < 0.0 or value > 1.0:
             value = min(fabs(value)/255.0, 1.0)
         self[0] = self._UNIT(value)
 
     r = property(get_r, set_r, doc="RED-Component of the Vector.")
 
-    def get_g(self): return self[1]
+    def get_g(self):
+        """ Retrieve the value of this color's GREEN component. """
+        
+        return self[1]
     def set_g(self, value):
+        """ Set the value of this color's GREEN component.
+        
+        NOTE: The value will be normalized if above 1. """
+
         if value < 0.0 or value > 1.0:
             value = min(fabs(value)/255.0, 1.0)
         self[1] = self._UNIT(value)
 
-    g = property(get_g, set_g, doc="BLUE-Component of the Vector.")
+    g = property(get_g, set_g, doc="GREEN-Component of the Vector.")
 
-    def get_b(self): return self[2]
+    def get_b(self):
+        """ Retrieve the value of this color's BLUE component. """
+
+        return self[2]
+
     def set_b(self, value):
+        """ Set the value of this color's BLUE component.
+        
+        NOTE: The value will be normalized if above 1. """
+
         if value < 0.0 or value > 1.0:
             value = min(fabs(value)/255.0, 1.0)
         self[2] = self._UNIT(value)
 
-    b = property(get_b, set_b, doc="GREEN-Component of the Vector.")
+    b = property(get_b, set_b, doc="BLUE-Component of the Vector.")
 
-class ColorRGBA(Vector4f):
+class ColorRGBA(ColorRGB):
+    """ The ColorRBGA is a 4d vector representation of color with the RED, 
+    GREEN, BLUE additive components and an additional opactiy value (ALPHA).
+    """
     
     def __new__(cls, r, g, b, a):
+        """ Internal function produces a new ndarray casted to this class. """
         
         if r < 0.0 or r > 1.0:
             r = min(fabs(r)/255.0, 1.0)
@@ -67,39 +102,25 @@ class ColorRGBA(Vector4f):
         if a < 0.0 or a > 1.0:
             a = min(fabs(a)/255.0, 1.0)
         
-        obj = super(ColorRGBA, cls).__new__(cls, r, g, b, a)
+        obj = np.asarray((r, g, b, a), FLOAT32).view(cls)
         return obj
     
     def __array_finalize__(self, obj):
+        """ Internal function to finalize additional attribues added to the 
+        base ndarray class. """
         
         if obj is None: return
 
-    def get_r(self): return self[0]
-    def set_r(self, value): 
-        if value < 0.0 or value > 1.0:
-            value = min(fabs(value)/255.0, 1.0)
-        self[0] = self._UNIT(value)
+    def get_a(self):
+        """ Retrieve the opacity (alpha) value associated with this color. """
 
-    r = property(get_r, set_r, doc="RED-Component of the Vector.")
+        return self[3]
 
-    def get_g(self): return self[1]
-    def set_g(self, value):
-        if value < 0.0 or value > 1.0:
-            value = min(fabs(value)/255.0, 1.0)
-        self[1] = self._UNIT(value)
-
-    g = property(get_g, set_g, doc="BLUE-Component of the Vector.")
-
-    def get_b(self): return self[2]
-    def set_b(self, value):
-        if value < 0.0 or value > 1.0:
-            value = min(fabs(value)/255.0, 1.0)
-        self[2] = self._UNIT(value)
-
-    b = property(get_b, set_b, doc="GREEN-Component of the Vector.")
-
-    def get_a(self): return self[3]
     def set_a(self, value):
+        """ Set the value of this color's ALPHA (opactiy) component.
+        
+        NOTE: The value will be normalized if above 1. """
+
         if value < 0.0 or value > 1.0:
             value = min(fabs(value)/255.0, 1.0)
         self[3] = self._UNIT(value)
@@ -110,6 +131,35 @@ class SpectralFile(object): pass
 
 class CIE_XYZ(object): pass
 
+class Light(object):
+    
+    def __init__(self):
+        
+        self._position = Vector4f(0.0, 0.0, 0.0, 0.0)
+        self._direction = Vector3f(0.0, 0.0, 0.0)
+        self._ambient = ColorRGB(1.0, 1.0, 1.0)
+        self._diffuse = ColorRGB(1.0, 1.0, 1.0)
+        self._specular = ColorRGB(1.0, 1.0, 1.0)
+        self._attn = Vector3f(0.0, 0.0, 0.0)
+        
+    def get_position(self): return self._position
+    def set_position(self, vector):
+        self._position[:3] = vector[:3]
+    position = property(get_position)
+    
+    def make_directional(self):
+        
+        self.position[3] = 1
+
+    def is_directional(self):
+        
+        return self.position[3]
+
+    def to_array(self):
+        
+        return np.concatenate((self._position, self._direction, self._ambient,
+                               self._diffuse, self._specular, self._attn))
+
 class Material(object):
     
     def __init__(self, name):
@@ -117,6 +167,10 @@ class Material(object):
         self._name = name
         self._ka = ColorRGB(1.0, 1.0, 1.0)
         self._kd = ColorRGB(1.0, 1.0, 1.0)
+        
+    def send(self):
+        """ Transfers this material's data to the GPU. """
+        pass
 
     def __set_color(self, r, g, b):
     
@@ -159,14 +213,14 @@ class Material(object):
     def get_name(self):
         
         return self._name
-    
+
 class MaterialLoader(object):
     
     def __init__(self):
         
         self.materials = []
         
-    def from_file(self, filename):
+    def from_mtl_file(self, filename):
         
         current = None
         with open(filename, "r") as fin:
@@ -197,6 +251,8 @@ class MaterialLoader(object):
                         current.set_kd(FLOAT32(tokens[1]))
                     else:
                         current.set_kd(FLOAT32(tokens[1]), FLOAT32(tokens[2]), FLOAT32(tokens[3]))
+
+        # Make sure to save the last material
         if current is not None:
             self.materials.append(current)
 
@@ -210,6 +266,10 @@ if __name__ == "__main__":
     test.r = 218
     print test.r
     
+    test2 = ColorRGBA(0.2, 48, .01, 1.3)
+    test2.r = 0x3F
+    print test2
+    
     mat_test = Material("test")
     mat_test.set_ka(4)
     print mat_test.ka
@@ -217,13 +277,19 @@ if __name__ == "__main__":
     print mat_test.ka
     
     loader = MaterialLoader()
-    loader.from_file("../res/Birch1.mtl")
+    loader.from_mtl_file("../res/Birch1.mtl")
     for m in loader.materials:
         print m.get_name()
         print "ka", m.ka
         print "kd", m.kd
     
+    test_light = Light()
+    test_light.position.x = 4
+    print test_light.position
+    new_position = Vector3f(1, 2, 3)
+    test_light.set_position(new_position)
+    print test_light.position
     
-    
+    print test_light.to_array().size
     
     
