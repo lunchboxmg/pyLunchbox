@@ -127,11 +127,29 @@ class ColorRGBA(ColorRGB):
 
     a = property(get_a, set_a, doc="ALPHA-Component of the Vector.")
 
-class SpectralFile(object): pass
-
-class CIE_XYZ(object): pass
-
 class Light(object):
+    """ The Light class is a collection of properties that dictate how the
+    light interacts with objects. 
+    
+    Attributes
+    ----------
+    position : :class:`Vector4f`
+        The current position of the light.  The 4th component designates if 
+        the light is point light (0) or directional (1).
+    direction : :class:`Vector3f`
+        Direction of the source is pointed.
+    ambient : :class:`ColorRGB`
+        The amount of base light in per RGB channel. (The color of the light).
+    diffuse : :class:`ColorRGB`
+        The amount of light reflected per RGB channel.
+    specular : :class:`ColorRGB`
+        The intensity of reflected light relative to the observers position.
+    attn : :class:`Vector3f`
+        Attenuation scaling factors\n
+        coeffecient {x}, linear (y), quadratic (z) where, 
+        :math:'a = x + y*d + z*d*d' with d = distance between light source and
+        object.
+    """
     
     def __init__(self):
         
@@ -140,12 +158,53 @@ class Light(object):
         self._ambient = ColorRGB(1.0, 1.0, 1.0)
         self._diffuse = ColorRGB(1.0, 1.0, 1.0)
         self._specular = ColorRGB(1.0, 1.0, 1.0)
-        self._attn = Vector3f(0.0, 0.0, 0.0)
+        self._attn = Vector3f(1.0, 0.0, 0.0)
+        # TODO: add floats for falloff
         
     def get_position(self): return self._position
     def set_position(self, vector):
         self._position[:3] = vector[:3]
     position = property(get_position)
+    
+    def get_direction(self): return self._direction
+    def set_direction(self, vector):
+        self._direction[:3] = vector[:3]
+    direction = property(get_direction)
+    
+    def get_ambient(self): return self._ambient
+    def set_ambient(self, color):
+        self._ambient[:3] = color[:3]
+    ambient = property(get_ambient)
+
+    def get_diffuse(self): return self._diffuse
+    def set_diffuse(self, color):
+        self._diffuse[:3] = color[:3]
+    diffuse = property(get_diffuse)
+
+    def get_specular(self): return self._specular
+    def set_specular(self, color):
+        self._specular[:3] = color[:3]
+    specular = property(get_specular)
+
+    def get_attn(self): return self._attn
+    def set_attn(self, vector):
+        self._attn[:3] = vector[:3]
+    attn = property(get_attn)
+
+    def get_coeffecient(self): return self._attn[0]
+    def set_coeffecient(self, value):
+        self._attn.x = value
+    coeffecient = property(get_coeffecient, set_coeffecient)
+
+    def get_linear(self): return self._attn[1]
+    def set_linear(self, value):
+        self._attn.y = value
+    linear = property(get_linear, set_linear)
+    
+    def get_quadratic(self): return self._attn[2]
+    def set_quadratic(self, value):
+        self._attn.z = value
+    quadratic = property(get_quadratic, set_quadratic)
     
     def make_directional(self):
         
@@ -159,6 +218,33 @@ class Light(object):
         
         return np.concatenate((self._position, self._direction, self._ambient,
                                self._diffuse, self._specular, self._attn))
+
+class Material2(object):
+    
+    def __init__(self, name):
+
+        self._name = name
+        self._ambient = ColorRGB(1.0, 1.0, 1.0)
+        self._diffuse = ColorRGB(1.0, 1.0, 1.0)
+        self._specular = ColorRGB(1.0, 1.0, 1.0)
+        self._shininess = 1.0
+
+    def get_ambient(self): return self._ambient
+    def set_ambient(self, color):
+        self._ambient[:3] = color[:3]
+    ambient = property(get_ambient)
+
+    def get_diffuse(self): return self._diffuse
+    def set_diffuse(self, color):
+        self._diffuse[:3] = color[:3]
+    diffuse = property(get_diffuse)
+
+    def get_specular(self): return self._specular
+    def set_specular(self, color):
+        self._specular[:3] = color[:3]
+    specular = property(get_specular)
+
+    def to_array(self): pass
 
 class Material(object):
     
@@ -290,6 +376,11 @@ if __name__ == "__main__":
     test_light.set_position(new_position)
     print test_light.position
     
-    print test_light.to_array().size
+    print test_light.to_array
+    test_light.set_direction(new_position)
+    print test_light.direction
+    test_light.coeffecient *= 4
+    print test_light.attn
+    Light()
     
     
