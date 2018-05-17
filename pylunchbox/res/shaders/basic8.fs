@@ -25,29 +25,36 @@ struct Light {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-    vec3 attn;
+    float constant;
+    float linear;
+    float quadratic;
 };
 uniform Light lights;
 
 vec3 calc_light(Light light, vec3 dir_view) {
-    
+
+    vec3 dir_light;
     if (light.position.w == 0) {
-        vec3 dir_light = normalize(light.position.xyz - pass_position);
+        dir_light = normalize(light.position.xyz - pass_position);
     } else { 
-        vec3 dir_light = normalize(light.direction);
+        dir_light = normalize(light.direction);
     }
     vec3 dir_reflect = reflect(-dir_light, pass_normal);
   
     float diff = max(dot(pass_normal, dir_light), 0.0f);
     float spec = pow(max(dot(dir_view, dir_reflect), 0.0f), material.shininess);
 
-    vec3 ambient  = light.ambient  *        vec3(texture(material.diffuse, pass_uv));
-    vec3 diffuse =  light.diffuse  * diff * vec3(texture(material.diffuse, pass_uv));
-    vec3 specular = light.specular * spec * vec3(texture(material.specular, pass_uv));
+    //vec3 ambient  = light.ambient  *        vec3(texture(material.diffuse, pass_uv));
+    //vec3 diffuse =  light.diffuse  * diff * vec3(texture(material.diffuse, pass_uv));
+    //vec3 specular = light.specular * spec * vec3(texture(material.specular, pass_uv));
     
-    float dist = length(light.poisition.xyz - pass_position);
-    float attn = 1.0f / (light.attn.x + light.attn.y * distance + 
-                         light.attn.z * distance * distance);
+    vec3 ambient  = light.ambient * material.ambient;
+    vec3 diffuse = light.diffuse * (diff * material.diffuse);
+    vec3 specular = light.specular * (spec * material.specular);
+
+    float distance = length(light.position.xyz - pass_position);
+    float attn = 1.0f / (light.constant + light.linear * distance + 
+                         light.quadratic * (distance * distance));
     
     return (ambient + diffuse + specular) * attn;
 }
