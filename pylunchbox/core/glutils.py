@@ -5,6 +5,7 @@ from ctypes import c_void_p
 __author__ = "lunchboxmg"
 
 from maths import Vector2f, Vector3f
+from material import Light
 
 UNIFORM_NOT_FOUND = -1
 
@@ -96,6 +97,13 @@ class UniformMatrix4f(UniformBase):
 
         glUniformMatrix4fv(self._location, 1, GL_FALSE, matrix)
 
+class UniformLights(UniformBase):
+    
+    def load(self, lights):
+        
+        data = [light.to_array() for light in lights]
+            
+            
 class ShaderProgram(object):
     """ The ShaderProgram is the base class for creating OpenGL shader
     programs. """
