@@ -437,7 +437,8 @@ class StaticBatch(Batch):
         #       must transform (interleave) the data into a flattened array.
         data = component.bundle.pack()
         # Create a memory chunk for the data
-        self._manager.allocate(data)
+        chunk = self._manager.allocate(data)
+        chunk._ref = entity
         # NOTE: As this is static data, make sure to transform the data first
         # Add the data to the master array
 
@@ -448,6 +449,10 @@ class StaticBatch(Batch):
             chunk = self._entity_map[entity]
             self._manager.remove(chunk)
             del self._entity_map[entity]
+
+    def update(self): pass
+
+    def swap(self): pass
 
     def defrag(self, full=False):
         """ Defragment / Refactor this batch's memory array. """

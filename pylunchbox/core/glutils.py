@@ -4,8 +4,7 @@ from ctypes import c_void_p
 
 __author__ = "lunchboxmg"
 
-from maths import Vector2f, Vector3f
-from material import Light
+from maths import Vector2f, Vector3f, concatenate
 
 UNIFORM_NOT_FOUND = -1
 
@@ -93,7 +92,7 @@ class UniformMatrix4f(UniformBase):
     array) into the shader program. """
 
     def load(self, matrix):
-        """ Load the iput `matrix` into this shader. """
+        """ Load the input `matrix` into this shader. """
 
         glUniformMatrix4fv(self._location, 1, GL_FALSE, matrix)
 
@@ -101,7 +100,8 @@ class UniformLights(UniformBase):
     
     def load(self, lights):
         
-        data = [light.to_array() for light in lights]
+        data = concatenate([light.to_array() for light in lights])
+        glUniformMatrix4fv(self._location, len(lights), GL_FALSE, data)
             
             
 class ShaderProgram(object):
