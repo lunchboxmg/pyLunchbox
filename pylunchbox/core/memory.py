@@ -22,6 +22,7 @@ from glutils import (Vao, Vbo, GL_ARRAY_BUFFER, GL_STATIC_DRAW,
                      glVertexAttribPointer, GL_FLOAT, GL_FALSE)
 from glutils import create_batch_buffer
 from modeling import MeshComponent
+from maths import Transformation
 
 class MemoryChunk(object):
     """ The MemoryChunk class keeps the indexing information for an entity's
@@ -426,16 +427,18 @@ class StaticBatch(Batch):
         self._world = world
         self._entity_map = dict()
         self._mtype = world.cm.get_type_for(MeshComponent)
+        self._ttype = world.cm.get_type_for(Transformation)
         self._get_mesh = partial(world.cm.get, component_type=self._mtype)
-        print self._get_mesh
+        self._get_transform = partial(world.cm.get, component_type=self._ttype)
 
     def add(self, entity):
 
         # Get the entity's mesh data
         component = self._get_mesh(entity.get_id())
+        transform = self._get_transform(entity.get_id())
         # TODO: Once the meshbundle has been pulled for the input entity, we
         #       must transform (interleave) the data into a flattened array.
-        data = component.bundle.pack()
+        data = component.bundle.pack(transform)
         # Create a memory chunk for the data
         chunk = self._manager.allocate(data)
         chunk._ref = entity

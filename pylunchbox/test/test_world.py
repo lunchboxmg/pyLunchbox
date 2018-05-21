@@ -73,8 +73,6 @@ class TestRenderer(object):
         
     def render(self):
         
-        global TEST_TEXTURE
-        
         glEnable(GL_DEPTH_TEST)
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
         glClearColor(0.2, 0.2, 0.2, 1.0)
@@ -113,6 +111,8 @@ class TestRenderer(object):
         self.shader.stop()
 
 def init_world(world):
+
+    global TEST_TEXTURE
     
     # Load the test mesh
     filename = "../res/cube.obj"
@@ -123,7 +123,6 @@ def init_world(world):
     
     # Load test texture
     filename = "../res/textures/wildtextures-seamless-paper-texture.jpg"
-    global TEST_TEXTURE
     TEST_TEXTURE = world.tm.load(filename)
     
     # Create the entity

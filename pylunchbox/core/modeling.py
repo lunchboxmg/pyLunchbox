@@ -92,7 +92,7 @@ class MeshData(object):
         self.uvs = uvs
         self.normals = normals
         
-    def pack(self):
+    def pack(self, transform=None):
         
         vsize = self.vertices[0].size
         try:
@@ -110,7 +110,7 @@ class MeshData(object):
 
         p = 0
         for v, vt, vn in zip(self.vertices, self.uvs, self.normals):
-            r[p : p + vsize] = v
+            r[p : p + vsize] = v if transform else np.dot(transform, v)
             r[p + toffset : p + noffset] = vt
             r[p + noffset : p + loffset] = vn
             p += stride
@@ -128,11 +128,11 @@ class MeshData(object):
 class MeshBundle(dict):
     """ The MeshBundle class is a container object for meshes. """
 
-    def pack(self):
+    def pack(self, transform=None):
         
         r = []
         for v in self.itervalues():
-            r.append(v.pack())
+            r.append(v.pack(transform))
         return np.concatenate(r)
 
 class MeshComponent(Component):
