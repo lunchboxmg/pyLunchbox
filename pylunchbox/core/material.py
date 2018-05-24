@@ -324,13 +324,15 @@ class MaterialLoader(object):
                 if first == "newmtl": # Starting a new material
                     if current is not None:
                         self.materials.append(current)
-                    current = Material(tokens[1])
+                    current = Material2(tokens[1])
                     
                 elif first == "ka": # Ambient color
                     if len(tokens) == 2:
-                        current.set_ka(FLOAT32(tokens[1]))
+                        current.set_ambient([FLOAT32(tokens[1])]*3)
                     else:
-                        current.set_ka(FLOAT32(tokens[1]), FLOAT32(tokens[2]), FLOAT32(tokens[3]))
+                        current.set_ambient([FLOAT32(tokens[1]), 
+                                             FLOAT32(tokens[2]), 
+                                             FLOAT32(tokens[3])])
 
                 elif first == "kd": # Diffuse color
                     if len(tokens) == 2:

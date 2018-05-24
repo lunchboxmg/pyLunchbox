@@ -58,10 +58,11 @@ class Vector2f(ndarray):
     def __new__(cls, x, y):
         """ Create a numpy array of elements x and y.
 
-        Parameters:
-        ===========
-        x (:obj:`float`): x-component.
-        y (:obj:`float`): y-component.
+        Parameters
+        ----------
+        x : :obj:`float`
+        
+        y : :obj:`float`
         """
 
         obj = np.asarray((x, y), cls._UNIT).view(cls)
@@ -85,10 +86,10 @@ class Vector2f(ndarray):
     def normalize(self, out=None):
         """ Normalize this vector inplace.
 
-        Parameters (Optional):
-        ======================
-        * out (:obj:`ndarray`): the ndarray or vector that the result will be
-          placed in.
+        Parameters
+        ----------
+        out : :class:`ndarray`, optional
+            the ndarray or vector that the result will be placed in.
         """
 
         new_array = normalize(self)
