@@ -438,7 +438,7 @@ class StaticBatch(Batch):
         transform = self._get_transform(entity.get_id())
         # TODO: Once the meshbundle has been pulled for the input entity, we
         #       must transform (interleave) the data into a flattened array.
-        data = component.bundle.pack(transform)
+        data = component.bundle.pack(transform.get_matrix())
         # Create a memory chunk for the data
         chunk = self._manager.allocate(data)
         chunk._ref = entity

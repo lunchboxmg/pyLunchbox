@@ -244,7 +244,10 @@ class Material2(object):
         self._specular[:3] = color[:3]
     specular = property(get_specular)
 
-    def to_array(self): pass
+    def to_array(self): 
+        
+        return np.concatenate((self._ambient, self._diffuse, self._specular, 
+                               self._shininess))
 
 class Material(object):
     

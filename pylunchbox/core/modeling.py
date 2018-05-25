@@ -6,7 +6,7 @@ from time import time as _time
 
 __author__ = "lunchboxmg"
 
-from maths import Vector2f, Vector3f
+from maths import Vector2f, Vector3f, Vector4f
 from ecs import Component
 
 class VertexVector(object):
@@ -110,7 +110,11 @@ class MeshData(object):
 
         p = 0
         for v, vt, vn in zip(self.vertices, self.uvs, self.normals):
-            r[p : p + vsize] = v if transform else np.dot(transform, v)
+            if transform is None:
+                r[p : p + vsize] = v
+            else:
+                # FIXME: Change the transform attr to matrix attr most likely
+                r[p : p + vsize] = v.transform(transform.T)
             r[p + toffset : p + noffset] = vt
             r[p + noffset : p + loffset] = vn
             p += stride

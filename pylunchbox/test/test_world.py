@@ -1,4 +1,5 @@
 import glfw
+import random
 
 from pylunchbox import core
 from pylunchbox.core import device, modeling, maths
@@ -11,7 +12,7 @@ class WorldTestApp(MainApp):
     @classmethod
     def init(cls):
         
-        core.device.init(cls, cls.get_full_title())
+        device.init(cls, cls.get_full_title())
         cls.world = World()
         init_world(cls.world)
         cls.renderer = TestRenderer(cls.world)
@@ -81,15 +82,15 @@ class TestRenderer(object):
         self.shader.start()
         
         t = device.Time.get_time_current()
-        r = 2
-        w = 0.5
+        r = 5
+        w = 0.25
         x = r * maths.cos(w*t)
         z = r * maths.sin(w*t)
 
-        self.camera_pos = cam = maths.Vector3f(x, 1, z)
+        self.camera_pos = cam = maths.Vector3f(10+x, 4, 10+z)
         self.shader.camera_pos.load(*cam)
         view = maths.look_at_RH(self.camera_pos, 
-                                maths.Vector3f(0, 0, 0),
+                                maths.Vector3f(10, 0, 10),
                                 maths.Vector3f(0, 1, 0))
         self.shader.view.load(view)
         model = maths.identity(4, dtype=maths.FLOAT32)
@@ -123,17 +124,40 @@ def init_world(world):
     
     # Load test texture
     filename = "../res/textures/wildtextures-seamless-paper-texture.jpg"
+    filename = "../res/textures/some_green.png"
+    #filename = "../res/MSX2-palette.png"
     TEST_TEXTURE = world.tm.load(filename)
     
-    # Create the entity
+    # Create the first entity
+    cube_entity = world.em.create()
+    cube_bundle_comp = world.cm.create(cube_entity.get_id(), modeling.MeshComponent)
+    cube_bundle_comp.bundle = cube_mesh
+    cube_transform = world.cm.create(cube_entity.get_id(), maths.Transformation)
+    cube_transform.set_position(maths.Vector3f(0, 0, 0))
+    cube_transform.set_scale(maths.Vector3f(0.05, 0.05, 0.05))
+    world.batch.add(cube_entity)
+    
+    # Create the second entity
     cube_entity = world.em.create()
     cube_bundle_comp = world.cm.create(cube_entity.get_id(), modeling.MeshComponent)
     cube_bundle_comp.bundle = cube_mesh
     cube_transform = world.cm.create(cube_entity.get_id(), maths.Transformation)
     cube_transform.set_position(maths.Vector3f(0, 0, 1))
-    
+    cube_transform.set_rotation(maths.Vector3f(20, 30, -40))
+    cube_transform.set_scale(maths.Vector3f(0.75, 1.5, 2.0))
     world.batch.add(cube_entity)
 
+    for i in xrange(10):
+        for j in xrange(10):
+            cube_entity = world.em.create()
+            cube_bundle_comp = world.cm.create(cube_entity.get_id(), modeling.MeshComponent)
+            cube_bundle_comp.bundle = cube_mesh
+            cube_transform = world.cm.create(cube_entity.get_id(), maths.Transformation)
+            cube_transform.set_position(maths.Vector3f(i*2, -2, j*2))
+            #cube_transform.set_scale(maths.Vector3f(0.05, 0.05, 0.05))
+            cube_transform.set_rotation(maths.Vector3f(random.uniform(0,60), random.uniform(0,60), random.uniform(0,60)))
+            world.batch.add(cube_entity)
+            
 if __name__ == "__main__":
     
     WorldTestApp.main()

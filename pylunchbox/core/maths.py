@@ -165,6 +165,10 @@ class Vector3f(Vector2f):
             print e
             return None
 
+    def as_vector4f(self):
+        """ Create an :class:`Vector4f` version of this vector. """
+        
+        
 class Vector3i(Vector3f):
 
     _UNIT = UINT32
@@ -507,3 +511,8 @@ if __name__ == "__main__":
     print ">>>", test_pos3.transform(matrix)
     matrix = rotate(matrix, 45.0, Vector3f(1, 0, 0))
     print ">>>", test_pos3.transform(matrix).get_xy()
+
+    pos1 = Vector3f(1.0, 0.0, 0.0)
+    trans1 = Transformation(Vector3f(1.0, 0.0, 2.0))
+    new_pos1 = pos1.transform(trans1.get_matrix().T)
+    print new_pos1
