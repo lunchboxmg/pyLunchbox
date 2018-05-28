@@ -7,6 +7,7 @@ __author__ = "lunchboxmg"
 
 from ecs import Component
 from constants import *
+
 # Type Conversions
 
 FLOAT32 = np.float32

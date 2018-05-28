@@ -134,7 +134,7 @@ def init_world(world):
     cube_bundle_comp.bundle = cube_mesh
     cube_transform = world.cm.create(cube_entity.get_id(), maths.Transformation)
     cube_transform.set_position(maths.Vector3f(0, 0, 0))
-    cube_transform.set_scale(maths.Vector3f(0.05, 0.05, 0.05))
+    cube_transform.set_scale(maths.Vector3f(2, 1, .5))
     world.batch.add(cube_entity)
     
     # Create the second entity

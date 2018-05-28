@@ -492,3 +492,8 @@ def swap():
     """ Swap window buffers. """
 
     window.swap()
+
+def get_dt():
+    """ Get the time difference between the previous and this frame. """
+    
+    return Time.get_dt()
