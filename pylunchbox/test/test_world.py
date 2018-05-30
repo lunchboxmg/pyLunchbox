@@ -1,21 +1,36 @@
 import glfw
 import random
+import os
+import inspect
 
 from pylunchbox import core
 from pylunchbox.core import device, modeling, maths
 from pylunchbox.core.main import MainApp
 from pylunchbox.core.world import World
+from pylunchbox.core.camera import Camera
 from pylunchbox.core.glutils import *
+from sample.input import InputSystem
 
 class WorldTestApp(MainApp):
     
     @classmethod
     def init(cls):
-        
+
+        # Get the proper path
+        filename = inspect.getframeinfo(inspect.currentframe()).filename
+        this_path = os.path.dirname(os.path.abspath(filename))
+        path_parts = this_path.split("\\")
+        while path_parts[-1] != "pylunchbox":
+            path_parts.pop()
+        cls.path = "/".join(path_parts)
+
+        # Initialize parts        
         device.init(cls, cls.get_full_title())
         cls.world = World()
         init_world(cls.world)
-        cls.renderer = TestRenderer(cls.world)
+        cls.camera = Camera(cls.world)
+        cls.input = InputSystem(cls)
+        cls.renderer = TestRenderer(cls)
 
     @classmethod
     def main(cls):
@@ -25,6 +40,9 @@ class WorldTestApp(MainApp):
         keyboard = device.keyboard
         while device.is_window_open():
             device.update()
+            cls.input.process()
+            cls.camera.update()
+            #print device.Time.get_fps()
             if keyboard.is_key_pressed(glfw.KEY_ESCAPE):
                 print "Bye Bye!"
                 device.request_window_closure()
@@ -60,13 +78,14 @@ class TestRenderer(object):
     NEAR_PLANE = 0.1
     FAR_PLANE = 100.0
     
-    def __init__(self, world):
+    def __init__(self, app):
         
-        self.world = world
+        self.world = app.world
+        self.camera = app.camera
         proj = maths.perspective_RH(60.0, device.window.get_aspect(), 0.1, 1000.0)
         self.shader = shader = TestShader("Test",
-                                 "../res/shaders/basic8.vs",
-                                 "../res/shaders/basic8.fs")
+                                 app.path + "/res/shaders/basic8.vs",
+                                 app.path + "/res/shaders/basic8.fs")
 
         shader.start()
         shader.proj.load(proj)
@@ -92,7 +111,7 @@ class TestRenderer(object):
         view = maths.look_at_RH(self.camera_pos, 
                                 maths.Vector3f(10, 0, 10),
                                 maths.Vector3f(0, 1, 0))
-        self.shader.view.load(view)
+        self.shader.view.load(self.camera.get_matrix())
         model = maths.identity(4, dtype=maths.FLOAT32)
         #model = maths.translate(model, maths.Vector3f(5, 0, 0))
         #model = maths.rotate(model, -t, maths.Vector3f(1, 0, 0))
@@ -114,17 +133,18 @@ class TestRenderer(object):
 def init_world(world):
 
     global TEST_TEXTURE
-    
+    path = WorldTestApp.path
+
     # Load the test mesh
-    filename = "../res/cube.obj"
-    #filename = "../res/stall.obj"
-    #filename = "../res/birch1.obj"
-    #filename = "../res/dragon.obj"
+    filename = path + "/res/cube.obj"
+    #filename = path + "res/stall.obj"
+    #filename = path + "/res/birch1.obj"
+    #filename = path + "/res/dragon.obj"
     cube_mesh = world.loader.load_mesh("Cube", filename)
     
     # Load test texture
-    filename = "../res/textures/wildtextures-seamless-paper-texture.jpg"
-    filename = "../res/textures/some_green.png"
+    filename = path + "/res/textures/wildtextures-seamless-paper-texture.jpg"
+    filename = path + "/res/textures/some_green.png"
     #filename = "../res/MSX2-palette.png"
     TEST_TEXTURE = world.tm.load(filename)
     
@@ -161,6 +181,7 @@ def init_world(world):
 if __name__ == "__main__":
     
     WorldTestApp.main()
+
     
         
     

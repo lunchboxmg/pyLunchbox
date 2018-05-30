@@ -439,7 +439,8 @@ class DeviceManager(object):
 
         self.window = window = Window(title, width, height)
         self.mouse = mouse = Mouse(window.get_instance())
-        self.keyboard = keyboard = Keyboard(window.get_instance())
+        self.keyboard = Keyboard(window.get_instance())
+        keyboard = self.keyboard
 
         # Set time
         self.timing = Time = DeviceTime()
