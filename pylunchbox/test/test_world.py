@@ -125,6 +125,7 @@ class TestRenderer(object):
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, TEST_TEXTURE._id)
         glDrawArrays(GL_TRIANGLES, 0, size)
+
         vao.disable()
         vao.unbind()
         
@@ -145,6 +146,7 @@ def init_world(world):
     # Load test texture
     filename = path + "/res/textures/wildtextures-seamless-paper-texture.jpg"
     filename = path + "/res/textures/some_green.png"
+    filename = path + "/res/textures/grid1.png"
     #filename = "../res/MSX2-palette.png"
     TEST_TEXTURE = world.tm.load(filename)
     
@@ -173,7 +175,7 @@ def init_world(world):
             cube_bundle_comp = world.cm.create(cube_entity.get_id(), modeling.MeshComponent)
             cube_bundle_comp.bundle = cube_mesh
             cube_transform = world.cm.create(cube_entity.get_id(), maths.Transformation)
-            cube_transform.set_position(maths.Vector3f(i, random.uniform(-.2,.2), j))
+            cube_transform.set_position(maths.Vector3f(i, random.uniform(-.2,.2), j)) #
             #cube_transform.set_scale(maths.Vector3f(0.05, 0.05, 0.05))
             #cube_transform.set_rotation(maths.Vector3f(random.uniform(0,60), random.uniform(0,60), random.uniform(0,60)))
             world.batch.add(cube_entity)

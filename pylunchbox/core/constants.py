@@ -169,3 +169,32 @@ GLFW_MOD_SHIFT              = 0x0001
 GLFW_MOD_CONTROL            = 0x0002
 GLFW_MOD_ALT                = 0x0004
 GLFW_MOD_SUPER              = 0x0008
+
+if __name__ == "__main__":
+    
+    k = 1024
+    m1 = GLFW_MOD_SHIFT
+    m2 = GLFW_MOD_CONTROL
+    m3 = GLFW_MOD_ALT
+    m4 = GLFW_MOD_SUPER
+
+    print bin(k)
+    print bin(k << 4)
+    print bin( m1 | m2 | m3 | m4)
+    print bin((k << 4) | (m1 | m2 | m3 | m4))
+    
+    print (k)
+    print (k << 4)
+    print ( m1 | m2 | m3 | m4)
+    print ((k << 4) | (m1 | m2 | m3 | m4))
+    
+    print bin(1024)
+    
+    for i in xrange(8):
+        print (i+1) & 0, bin(i)
+        
+    b = 7
+    
+    x = (k << 8) | (b << 4) | ( m1 | m2 | m3 | m4)
+    print bin(x), x
+    print "{:s}|{:s}|{:s}".format(bin(k), bin(b+1), bin(m1 | m2 | m3 | m4))

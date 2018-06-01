@@ -31,8 +31,8 @@ class Texture2D(object):
 
     def filter_none(self):
         
-        glParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 
     def filter_linear(self):
         
@@ -60,7 +60,7 @@ class TextureManager(object):
         texture = Texture2D()
         texture.bind()
         texture.repeat()
-        texture.filter_linear()
+        texture.filter_none()
         
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, 
                      GL_UNSIGNED_BYTE, data.flatten())
