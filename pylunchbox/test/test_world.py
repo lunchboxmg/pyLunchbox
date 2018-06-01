@@ -173,9 +173,9 @@ def init_world(world):
             cube_bundle_comp = world.cm.create(cube_entity.get_id(), modeling.MeshComponent)
             cube_bundle_comp.bundle = cube_mesh
             cube_transform = world.cm.create(cube_entity.get_id(), maths.Transformation)
-            cube_transform.set_position(maths.Vector3f(i*2, -2, j*2))
+            cube_transform.set_position(maths.Vector3f(i, random.uniform(-.2,.2), j))
             #cube_transform.set_scale(maths.Vector3f(0.05, 0.05, 0.05))
-            cube_transform.set_rotation(maths.Vector3f(random.uniform(0,60), random.uniform(0,60), random.uniform(0,60)))
+            #cube_transform.set_rotation(maths.Vector3f(random.uniform(0,60), random.uniform(0,60), random.uniform(0,60)))
             world.batch.add(cube_entity)
             
 if __name__ == "__main__":
