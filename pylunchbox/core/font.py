@@ -1,18 +1,40 @@
 """ The font module. """
 
 from maths import Vector2f
+import glutils
 import device
 
 class Glyph(object):
+    """ The Glyph class containes the vertice and texture coordinate 
+    information for a character in a font texture atlas. 
+    
+    Attributes
+    ----------
+    ascii : :obj:`int`
+        The ascii id number for the character being represented.
+    offset : :obj:`Vector2f`
+        Position relative to the cursor in which to start this glyph's
+        quad (top-left).
+    size : :obj:`Vector2f`
+        The size of the glyph's quad in screen space.
+    tex_start : :obj:`Vector4f`
+        The starting position (top-left) of the glyph's normalize texture 
+        coordinates.
+    tex_stop : : obj:`Vector2f`
+        The ending position (bottom-right) of the glyph's normalize texture
+        coordinates.
+    advance_x : :obj:`float`
+        How far to advance the cursor in the x direction.
+    """
 
     def __init__(self, ascii_, offset_x, offset_y, size_x, size_y, tx, ty,
                  tsize_x, tsize_y, advance_x):
 
         self.ascii = ascii_
-        self.size = Vector2f(size_x, size_y)
         self.offset = Vector2f(offset_x, offset_y)
-        self.tpos = Vector2f(tx, ty)
-        self.tsize = Vector2f(tsize_x, tsize_y)
+        self.size = Vector2f(size_x, size_y)
+        self.tex_start = Vector2f(tx, ty)
+        self.tex_stop = Vector2f(tx + tsize_x, ty + tsize_y)
         self.advance_x = advance_x
 
 _LINE_HEIGHT = 0.03
@@ -29,9 +51,10 @@ class FontFile(object):
 
     def __init__(self, filename):
 
-        self._aspect = device.window.get_aspect()
+        self._aspect = 16.0/9.0 #device.window.get_aspect()
         self._data = dict()
         self._values = dict()
+        self._space = 0
 
         self._padding = [0, 0, 0, 0]
         self._pad_width = 0
@@ -41,9 +64,11 @@ class FontFile(object):
         self._hpps = 0
         self._img_width = 0
 
+        self.load(filename)
+
     def load(self, filename):
 
-        values = self.values
+        values = self._values
 
         with open(filename, "r") as fin:
             for uline in fin:
@@ -110,11 +135,14 @@ class FontFile(object):
         return which
 
     def __load_glyph(self):
+        """ Internal function to load the data parsed from a font data line 
+        into a :class:`Glyph`."""
 
         values = self._values
         img_size = self._img_size
         p = self._padding
 
+        # Retrieve the ascii value and check if space, space is just sizing
         ascii_ = int(values["id"])
         if ascii_ == ASCII_SPACE:
             self._space = (float(values["xadvance"]) - self._pad_width)
@@ -122,15 +150,16 @@ class FontFile(object):
             return None
 
         # Determine the normalize texture coordinates for the glyph's
-        # starting position
+        # starting corner's position
         x = (float(values["x"]) + p[PAD_LEFT] - DPAD)/img_size
         y = (float(values["y"]) + p[PAD_TOP] - DPAD)/img_size
 
-        # Determine the glyph's
+        # Determine the glyph's size
         w = float(values["width"]) - self._pad_width + 2*DPAD
         h = float(values["height"]) - self._pad_height + 2*DPAD
         
-        # Determine the start and stop vertices of glyphs quad in scrren space.
+        # Determine the starting vertex (upper left) for starting this glyph's
+        # quad and the end vertex (lower right) of the vertex
         offset_x = (float(values["xoffset"]) + p[PAD_LEFT] - DPAD)*self._hpps
         offset_y = (float(values["yoffset"]) + p[PAD_TOP] - DPAD)*self._vpps
         qw = w*self._hpps
@@ -141,21 +170,56 @@ class FontFile(object):
         size_x = float(w) / img_size
         size_y = float(h) / img_size
 
+        # How far the cursor need to move to signify the start of the next
+        # glyph
         advance_x = (float(values["xadvance"]) - self._pad_width) * self._hpps
 
         return Glyph(ascii_, offset_x, offset_y, qw, qh, x, y, size_x, size_y, 
                      advance_x)
 
+    def get_glyph(self, ascii_):
+        """ Get the glyph for the input character's ascii value. """
+
+        return self._data.get(ascii_, None)
+
+    def __getitem__(self, value):
+        """ Overloaded. """
+
+        return self._data.get(value)
+
+class Font(object):
+
+    def __init__(self, name, filename, texture):
+
+        self._name = name
+        self._metadata = FontFile(filename)
+        self._texture = texture
+
+    def get_space(self):
+
+        return self._metadata._space
+
+    def __getitem__(self, name):
+
+        return self._metadata[name]
 
 
-
-
-
-
-
-
-class Font(object): pass
-
-class FontShader(object): pass
+class FontShader(glutils.ShaderProgram): pass
 
 class FontRenderer(object): pass
+
+if __name__ == "__main__":
+
+    import inspect
+    import os
+
+    filename = inspect.getframeinfo(inspect.currentframe()).filename
+    this_path = os.path.dirname(os.path.abspath(filename))
+    path_parts = this_path.split("\\")
+    while path_parts[-1] != "pylunchbox":
+        path_parts.pop()
+    path = "/".join(path_parts)
+
+    filename = path +"/res/fonts/berlin.fnt"
+    test_font = Font("Berlin", filename, None)
+    print test_font[ord("B")]
