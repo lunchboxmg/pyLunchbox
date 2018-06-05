@@ -14,6 +14,11 @@ FLOAT32 = np.float32
 UINT32 = np.uint32
 FLOAT64 = np.float64
 
+def make_float_array(list_):
+    """ Convert the input list into a numpy array of floats. """
+
+    return np.array(list_, dtype=FLOAT32)
+
 # Vector functions
 
 def get_length(vector):

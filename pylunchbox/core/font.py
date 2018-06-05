@@ -183,6 +183,11 @@ class FontFile(object):
 
         return self._data.get(ascii_, None)
 
+    def get_space(self):
+        """ Retrieve the size of the space (" ") character in glyph space. """
+
+        return self._space
+    
     def __getitem__(self, value):
         """ Overloaded. """
 
@@ -199,6 +204,13 @@ class Font(object):
     def get_space(self):
 
         return self._metadata._space
+
+    def get_name(self):
+        """ Retrieve the name given to this font. """
+
+        return self._name
+
+    name = property(get_name, doc=get_name.__doc__)
 
     def __getitem__(self, name):
 

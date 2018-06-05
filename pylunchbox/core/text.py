@@ -1,3 +1,6 @@
+from maths import Vector2f, make_float_array
+from font import Font
+
 ASCII_SPACE = 32
 
 class _Word(object):
@@ -27,6 +30,11 @@ class _Word(object):
 
         self._glyphs.append(glyph)
         self._width += glyph.advance_x * self._fontsize
+
+    def iter_glyphs(self):
+        """ Iterate over the glyphs in this word."""
+
+        for glyph in self._glyphs: yield glyph
 
     def get_width(self):
         """ Retrieve the width of this word in screen space. """
@@ -65,11 +73,20 @@ class _Line(object):
     length = property(get_length, doc=get_length.__doc__)
 
     def get_max_length(self):
+        """ Retrieve the maximum allowable length in screen space for this 
+        line. """
 
         return self._max_len
 
+    max_length = property(get_max_length, doc=get_max_length.__doc__)
+
+    def iter_words(self):
+        """ Iterate over the words in this line. """
+
+        for word in self._words: yield word
 
     def __len__(self):
+        """ Overloaded length (size) of this text. """
 
         return self._len
 
@@ -86,9 +103,27 @@ class Text(object):
         self._centered = centered
         self._color = color
 
+    def get_text(self):
+
+        return self._text
+    
+    text = property(get_text, doc=get_text.__doc__)
+
     def get_fontsize(self):
 
         return self._fontsize
+    
+    fontsize = property(get_fontsize, doc=get_fontsize.__doc__)
+
+    def get_length(self):
+
+        return self._max_line_len
+
+    def get_centered(self):
+
+        return self._centered
+    
+    centered = property(get_centered)
 
 class _MeshCreater(object):
 
@@ -100,6 +135,7 @@ class _MeshCreater(object):
 
         lines = self.__create_structure(text)
         data = self.__load_structure(text, lines)
+        return data
 
     def __create_structure(self, text):
 
@@ -142,10 +178,41 @@ class _MeshCreater(object):
         coords = []
 
         for line in lines:
-            cursor_x = ident # TODO: Add indent parameter to text line
+            cursor_x = indent # TODO: Add indent parameter to text line
             if text.centered:
-                cursor_x = (line.
+                cursor_x = (line.max_length - line.length) * 0.5
+            for word in line.iter_words():
+                for glyph in word.iter_glyphs():
+                    self.__add_vertices(cursor_x, cursor_y, glyph, 
+                                        text.fontsize, vertices)
+                    self.__add_coords(glyph, coords)
+                    cursor_x += glyph.advance_x * text.fontsize 
+                cursor_x += self._font.get_space() * text.fontsize
 
+        return make_float_array(vertices), make_float_array(coords)
+    
+    def __add_vertices(self, cursor_x, cursor_y, glyph, fontsize, vertices):
+        """ Add the vertices associated with the input glyph to the array. """
+
+        p1 = Vector2f(cursor_x, cursor_y) + glyph.offset*fontsize
+        p2 = p1 + glyph.size*fontsize
+
+        # Convert to device space
+        x1 =  2 * p1.x - 1
+        y1 = -2 * p1.y + 1
+        x2 =  2 * p2.x - 1
+        y2 =  2 * p2.y + 1
+
+        vertices += [x1,y1, x1,y2, x2,y2, x2,y2, x2,y1, x1,x2]
+
+    def __add_coords(self, glyph, coords):
+        """ Add the texture coordinates associated with the glyph into the 
+        array. """
+
+        x1, y1 = glyph.tex_start
+        x2, y2 = glyph.tex_stop
+
+        coords += [x1,y1, x1,y2, x2,y2, x2,y2, x2,y1, x1,y1]
 
 class TextManager(object):
     """ The TextManager class is responsible for handling the creation of 
@@ -153,7 +220,51 @@ class TextManager(object):
 
     def __init__(self, app):
 
-        self.app = app
+        self._app = app
 
-        self.fonts =  {}
-        self.texts = {}
+        self._fonts =  {}
+        self._loaders = {}
+        self._texts = {}
+
+    def add_font(self, font):
+        """ Add a new font to this manager. """
+
+        self._fonts[font.name] = font
+        self._loaders[font] = _MeshCreater(font)
+
+    def load_font(self, name, font_filename, texture_filename):
+
+        texture = None
+        font = Font(name, font_filename, texture)
+        self.add_font(font)
+
+        return font
+
+    def get_font(self, name):
+
+        return self._fonts.get(name, None)
+
+    def get_app(self):
+        """ Retrieve the app that own's this manager. """
+
+        return self._app
+
+    app = property(get_app, doc=get_app.__doc__)
+
+if __name__ == "__main__":
+
+    from resource import ResourceManager
+
+    rm = ResourceManager()
+    filename = rm.path + "/fonts/berlin.fnt"
+
+    tm = TextManager(None)
+    font = tm.load_font("Berlin", filename, None)
+
+    msg = "Hello World!"
+    pos = Vector2f(0, 0)
+    text = Text("Hello World!", font, 12, pos, 200)
+
+    v, t =tm._loaders[font].create(text)
+    print v
+    print t
