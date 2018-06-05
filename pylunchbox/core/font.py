@@ -37,7 +37,7 @@ class Glyph(object):
         self.tex_stop = Vector2f(tx + tsize_x, ty + tsize_y)
         self.advance_x = advance_x
 
-_LINE_HEIGHT = 0.03
+LINE_HEIGHT = 0.03
 ASCII_SPACE = 32 # Ascii value for the space glyph (which is empty)
 
 # Padding index values
@@ -85,11 +85,12 @@ class FontFile(object):
                     self._pad_height = padding[0] + padding[2]
                 if which == "common":
                     line_height = float(values["lineHeight"]) - self._pad_height
-                    self._vpps = _LINE_HEIGHT / line_height
+                    self._vpps = LINE_HEIGHT / line_height
                     self._hpps = self._vpps / self._aspect
                     self._img_size = float(values["scaleW"])
 
-                
+        return self
+
     def __process_line(self, line):
         """ Internal function that parsing the data within the input line 
         from the font file.

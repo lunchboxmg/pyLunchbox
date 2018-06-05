@@ -1,3 +1,5 @@
+ASCII_SPACE = 32
+
 class _Word(object):
     """ The _Word class is a helper for creating the text structure. """
 
@@ -62,6 +64,11 @@ class _Line(object):
 
     length = property(get_length, doc=get_length.__doc__)
 
+    def get_max_length(self):
+
+        return self._max_len
+
+
     def __len__(self):
 
         return self._len
@@ -98,6 +105,47 @@ class _MeshCreater(object):
 
         space = self._font.get_space()
         fontsize = text.get_fontsize()
+        max_len = text.get_length()
+
+        lines = []
+        line = _Line(space, fontsize, max_len)
+        word = _Word(fontsize)
+
+        for c in text.text:
+            ascii_ = ord(c)
+            if ascii_ == ASCII_SPACE:
+                added = line.add_word(word)
+                if not added:
+                    lines.append(line)
+                    line = _Line(space, fontsize, max_len)
+                    line.add_word(word)
+                word = _Word(fontsize)
+                continue
+            glyph = self._font[ascii_]
+            word.add_glyph(glyph)
+        added = line.add_word(word)
+        if not added:
+            lines.append(line)
+            line = _Line(space, fontsize, max_len)
+            line.add_word(word)
+        lines.append(line)
+
+        return lines
+
+    def __load_structure(self, text, lines):
+
+        indent = 0
+        cursor_x = 0
+        cursor_y = 0
+
+        vertices = []
+        coords = []
+
+        for line in lines:
+            cursor_x = ident # TODO: Add indent parameter to text line
+            if text.centered:
+                cursor_x = (line.
+
 
 class TextManager(object):
     """ The TextManager class is responsible for handling the creation of 
