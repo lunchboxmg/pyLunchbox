@@ -1,4 +1,5 @@
-from maths import Vector2f, make_float_array
+from maths import Vector2f, Vector3f, make_float_array, empty, FLOAT32
+from glutils import create_batch_buffer, GL_STATIC_DRAW
 from font import Font
 
 ASCII_SPACE = 32
@@ -102,6 +103,29 @@ class Text(object):
         self._max_line_len = max_line_len
         self._centered = centered
         self._color = color
+        self._vao = None
+        self._vbo = None
+
+    def load_mesh(self, pos, uv):
+
+        size = pos.size/2
+        a = empty(size*4, dtype=FLOAT32)
+        ai = 0 ; pi = 0
+        for i in xrange(size):
+            a[ai] = pos[pi]
+            a[ai+1] = pos[pi+1]
+            a[ai+2] = uv[pi]
+            a[ai+3] = uv[pi+1]
+            ai += 4
+            pi += 2
+        
+        b = create_batch_buffer(a.size, [2,2], GL_STATIC_DRAW)
+        self._vao, self._vbo = b
+        self._vbo.upload()a
+        vbo = self._vbo
+        vbo.bind(GL_ARRAY_BUFFER)
+        vbo.upload_sub(0, a)
+        vbo.unbind()
 
     def get_text(self):
 
@@ -124,6 +148,9 @@ class Text(object):
         return self._centered
     
     centered = property(get_centered)
+
+    def get_vao(self): return self._vao
+    def get_vbo(self): return self._vbo
 
 class _MeshCreater(object):
 
@@ -194,14 +221,14 @@ class _MeshCreater(object):
     def __add_vertices(self, cursor_x, cursor_y, glyph, fontsize, vertices):
         """ Add the vertices associated with the input glyph to the array. """
 
-        p1 = Vector2f(cursor_x, cursor_y) + glyph.offset*fontsize
-        p2 = p1 + glyph.size*fontsize
+        x1, y1 = p1 = Vector2f(cursor_x, cursor_y) + glyph.offset*fontsize
+        x2, y2 = p2 = p1 + glyph.size*fontsize
 
         # Convert to device space
-        x1 =  2 * p1.x - 1
-        y1 = -2 * p1.y + 1
-        x2 =  2 * p2.x - 1
-        y2 =  2 * p2.y + 1
+        #x1 =  2 * p1.x - 1
+        #y1 = -2 * p1.y + 1
+        #x2 =  2 * p2.x - 1
+        #y2 =  2 * p2.y + 1
 
         vertices += [x1,y1, x1,y2, x2,y2, x2,y2, x2,y1, x1,x2]
 
@@ -240,6 +267,13 @@ class TextManager(object):
 
         return font
 
+    def add_text(self, text):
+
+        font = text.font
+        pos, uv = self._loaders[font].create(text)
+        text.load_mesh(pos, uv)
+        self._texts[font] = self._text
+
     def get_font(self, name):
 
         return self._fonts.get(name, None)
@@ -262,8 +296,8 @@ if __name__ == "__main__":
     font = tm.load_font("Berlin", filename, None)
 
     msg = "Hello World!"
-    pos = Vector2f(0, 0)
-    text = Text("Hello World!", font, 12, pos, 200)
+    pos = Vector3f(0, 0, 1)
+    text = Text("Hello World!", font, 12, pos, 1)
 
     v, t =tm._loaders[font].create(text)
     print v

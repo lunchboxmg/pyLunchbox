@@ -370,4 +370,3 @@ def create_batch_buffer(size, layout, usage):
     vao.unbind()
     
     return vao, vbo
-    

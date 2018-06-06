@@ -1,8 +1,8 @@
 """ The font module. """
 
 from maths import Vector2f
-import glutils
 import device
+from glutils import *
 
 class Glyph(object):
     """ The Glyph class containes the vertice and texture coordinate 
@@ -51,7 +51,7 @@ class FontFile(object):
 
     def __init__(self, filename):
 
-        self._aspect = 16.0/9.0 #device.window.get_aspect()
+        self._aspect = 1280.0/720.0#device.window.get_aspect()
         self._data = dict()
         self._values = dict()
         self._space = 0
@@ -217,9 +217,38 @@ class Font(object):
         return self._metadata[name]
 
 
-class FontShader(glutils.ShaderProgram): pass
+class FontShader(ShaderProgram):
 
-class FontRenderer(object): pass
+    FILE_VS = "/res/shaders/font.vs"
+    FILE_FS = "/res/shaders/font.fs"
+
+    def __init__(self):
+        super(FontShader, self).__init__("FONT", FontShader.FILE_VS,
+                                         FontShader.FILE_FS)
+
+        self.transform = UniformVector3f("transform")
+        self.color = UniformVector3f("color")
+
+        self.store_locations(self.transform, self.color)
+
+class FontRenderer(object):
+
+    def __init__(self, app):
+
+        self.app = app
+        self._shader = FontShader()
+
+    def prepare(self):
+        """ Prepare the device for rendering. """
+
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glDisable(GL_DEPTH_TEST)
+        self._shader.use()
+        
+
+
+
 
 if __name__ == "__main__":
 
