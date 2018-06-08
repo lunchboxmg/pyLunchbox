@@ -1,6 +1,6 @@
 """ The font module. """
 
-from maths import Vector2f
+from maths import Vector2f, Vector3f
 import device
 from glutils import *
 
@@ -212,6 +212,13 @@ class Font(object):
 
     name = property(get_name, doc=get_name.__doc__)
 
+    def get_texture(self):
+        """ Retrieve the font texture atlas associated with this font. """
+
+        return self._texture
+
+    texture = property(get_texture, doc=get_texture.__doc__)
+
     def __getitem__(self, name):
 
         return self._metadata[name]
@@ -222,21 +229,39 @@ class FontShader(ShaderProgram):
     FILE_VS = "/res/shaders/font.vs"
     FILE_FS = "/res/shaders/font.fs"
 
-    def __init__(self):
-        super(FontShader, self).__init__("FONT", FontShader.FILE_VS,
-                                         FontShader.FILE_FS)
+    def __init__(self, path):
+        super(FontShader, self).__init__("FONT", path + FontShader.FILE_VS,
+                                         path + FontShader.FILE_FS)
 
         self.transform = UniformVector3f("transform")
         self.color = UniformVector3f("color")
+        self.outline_color = UniformVector3f("outline_color")
 
-        self.store_locations(self.transform, self.color)
+        self.store_locations(self.transform, self.color, self.outline_color)
 
 class FontRenderer(object):
 
     def __init__(self, app):
 
         self.app = app
-        self._shader = FontShader()
+        self._shader = FontShader(app.path)
+
+    def render(self, texts):
+
+        self.prepare()
+        for font, batch in texts.iteritems():
+            glActiveTexture(GL_TEXTURE0)
+            font.get_texture().bind()
+            for text in batch:
+                self._shader.transform.load(text.position.x, text.position.y, 1.0)
+                vao = text.get_vao()
+                vao.bind()
+                vao.enable(2)
+                glDrawArrays(GL_TRIANGLES, 0, text.mesh_size)
+                vao.disable()
+                vao.unbind()
+            font.get_texture().unbind()
+        self.finish()
 
     def prepare(self):
         """ Prepare the device for rendering. """
@@ -244,7 +269,21 @@ class FontRenderer(object):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glDisable(GL_DEPTH_TEST)
-        self._shader.use()
+        #glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        self._shader.start()
+        self._shader.color.load(1, 1, 1)
+        self._shader.outline_color.load(0, 0, 0)
+
+    def finish(self):
+
+        self._shader.stop()
+        glDisable(GL_BLEND)
+        glEnable(GL_DEPTH_TEST)
+
+    def destroy(self):
+
+        self._shader.destroy()
+    
         
 
 

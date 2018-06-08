@@ -10,6 +10,7 @@ from pylunchbox.core.world import World
 from pylunchbox.core.camera import Camera
 from pylunchbox.core.glutils import *
 from sample.input import InputSystem
+from pylunchbox.core.text import TextManager, Text, Font
 
 class WorldTestApp(MainApp):
     
@@ -27,6 +28,7 @@ class WorldTestApp(MainApp):
         # Initialize parts        
         device.init(cls, cls.get_full_title())
         cls.world = World()
+        cls.textmgr = TextManager(cls)
         init_world(cls.world)
         cls.camera = Camera(cls.world)
         cls.input = InputSystem(cls)
@@ -47,11 +49,13 @@ class WorldTestApp(MainApp):
                 print "Bye Bye!"
                 device.request_window_closure()
             cls.renderer.render()
+            cls.textmgr.render()
             device.swap()
         cls.destroy()
     
     @classmethod
     def destroy(cls):
+        #cls.textmgr.destroy()
         cls.world.batch.destroy()
         #cls.world.shader.destroy()
         core.device.shutdown()
@@ -148,7 +152,7 @@ def init_world(world):
     filename = path + "/res/textures/some_green.png"
     filename = path + "/res/textures/grid1.png"
     #filename = "../res/MSX2-palette.png"
-    TEST_TEXTURE = world.tm.load(filename)
+    TEST_TEXTURE = world.tm.load(filename, "PNG-PIL")
     
     # Create the first entity
     cube_entity = world.em.create()
@@ -179,7 +183,15 @@ def init_world(world):
             #cube_transform.set_scale(maths.Vector3f(0.05, 0.05, 0.05))
             #cube_transform.set_rotation(maths.Vector3f(random.uniform(0,60), random.uniform(0,60), random.uniform(0,60)))
             world.batch.add(cube_entity)
-            
+    
+    # Try loading some text
+    filename = path + "/res/fonts/berlin2.png"
+    ftex1 = world.tm.load(filename, "PNG-PIL")
+    font1 = Font("Consolas", path + "/res/fonts/berlin2.fnt", ftex1)
+    WorldTestApp.textmgr.add_font(font1)
+    text1 = Text("Some Text Here!", font1, 1.0, Vector2f(0.5, 0.5), 1.0)
+    WorldTestApp.textmgr.add_text(text1)
+
 if __name__ == "__main__":
     
     WorldTestApp.main()

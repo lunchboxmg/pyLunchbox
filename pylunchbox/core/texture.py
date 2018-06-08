@@ -52,17 +52,23 @@ class TextureManager(object):
         self.world = world
         self.textures = []
         
-    def load(self, filename):
+    def load(self, filename, format=None):
         
-        data = imageio.imread(filename).astype(UINT8)
-        h, w, _ = data.shape
+        if format is None:
+            data = imageio.imread(filename).astype(UINT8)
+        else:
+            data = imageio.imread(filename, format=format).astype(UINT8)
+        h, w, n = data.shape
         
         texture = Texture2D()
         texture.bind()
         texture.repeat()
         texture.filter_none()
         
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, 
+        if n == 3: form = GL_RGB
+        elif n == 4: form = GL_RGBA
+
+        glTexImage2D(GL_TEXTURE_2D, 0, form, w, h, 0, form,
                      GL_UNSIGNED_BYTE, data.flatten())
         
         texture.unbind()

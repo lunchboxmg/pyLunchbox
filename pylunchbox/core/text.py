@@ -1,6 +1,6 @@
 from maths import Vector2f, Vector3f, make_float_array, empty, FLOAT32
-from glutils import create_batch_buffer, GL_STATIC_DRAW
-from font import Font
+from glutils import create_batch_buffer, GL_STATIC_DRAW, GL_ARRAY_BUFFER
+from font import Font, FontRenderer
 
 ASCII_SPACE = 32
 
@@ -105,10 +105,11 @@ class Text(object):
         self._color = color
         self._vao = None
         self._vbo = None
+        self._mesh_size = 0
 
     def load_mesh(self, pos, uv):
 
-        size = pos.size/2
+        self._mesh_size = size = pos.size/2
         a = empty(size*4, dtype=FLOAT32)
         ai = 0 ; pi = 0
         for i in xrange(size):
@@ -119,9 +120,10 @@ class Text(object):
             ai += 4
             pi += 2
         
-        b = create_batch_buffer(a.size, [2,2], GL_STATIC_DRAW)
+        print a
+        
+        b = create_batch_buffer(a.nbytes, [2,2], GL_STATIC_DRAW)
         self._vao, self._vbo = b
-        self._vbo.upload()a
         vbo = self._vbo
         vbo.bind(GL_ARRAY_BUFFER)
         vbo.upload_sub(0, a)
@@ -133,6 +135,12 @@ class Text(object):
     
     text = property(get_text, doc=get_text.__doc__)
 
+    def get_font(self):
+
+        return self._font
+
+    font = property(get_font, doc=get_font.__doc__)
+
     def get_fontsize(self):
 
         return self._fontsize
@@ -142,6 +150,18 @@ class Text(object):
     def get_length(self):
 
         return self._max_line_len
+
+    def get_position(self):
+
+         return self._position
+
+    position = property(get_position, doc=get_position.__doc__)
+
+    def get_mesh_size(self):
+
+        return self._mesh_size
+    
+    mesh_size = property(get_mesh_size, doc=get_mesh_size.__doc__)
 
     def get_centered(self):
 
@@ -230,7 +250,8 @@ class _MeshCreater(object):
         #x2 =  2 * p2.x - 1
         #y2 =  2 * p2.y + 1
 
-        vertices += [x1,y1, x1,y2, x2,y2, x2,y2, x2,y1, x1,x2]
+        vertices += [x1,y1, x1,y2, x2,y2, x2,y2, x2,y1, x1,y1]
+        #vertices += [x1,y1, x1,y2, x2,y1, x2,y1, x2,y2, x2,x2]
 
     def __add_coords(self, glyph, coords):
         """ Add the texture coordinates associated with the glyph into the 
@@ -253,11 +274,18 @@ class TextManager(object):
         self._loaders = {}
         self._texts = {}
 
+        self._renderer = FontRenderer(app)
+
+    def render(self):
+
+        self._renderer.render(self._texts)
+
     def add_font(self, font):
         """ Add a new font to this manager. """
 
         self._fonts[font.name] = font
         self._loaders[font] = _MeshCreater(font)
+        self._texts[font] = []
 
     def load_font(self, name, font_filename, texture_filename):
 
@@ -272,7 +300,7 @@ class TextManager(object):
         font = text.font
         pos, uv = self._loaders[font].create(text)
         text.load_mesh(pos, uv)
-        self._texts[font] = self._text
+        self._texts[font].append(text)
 
     def get_font(self, name):
 
@@ -284,6 +312,10 @@ class TextManager(object):
         return self._app
 
     app = property(get_app, doc=get_app.__doc__)
+
+    def destroy(self):
+
+        self._renderer.destroy()
 
 if __name__ == "__main__":
 
