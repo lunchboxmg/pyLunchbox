@@ -11,6 +11,7 @@ from pylunchbox.core.camera import Camera
 from pylunchbox.core.glutils import *
 from sample.input import InputSystem
 from pylunchbox.core.text import TextManager, Text, Font
+from pylunchbox.core.texture import TextureBuilder
 
 class WorldTestApp(MainApp):
     
@@ -55,7 +56,8 @@ class WorldTestApp(MainApp):
     
     @classmethod
     def destroy(cls):
-        #cls.textmgr.destroy()
+        cls.textmgr.destroy()
+        cls.world.tm.destroy()
         cls.world.batch.destroy()
         #cls.world.shader.destroy()
         core.device.shutdown()
@@ -152,7 +154,9 @@ def init_world(world):
     filename = path + "/res/textures/some_green.png"
     filename = path + "/res/textures/grid1.png"
     #filename = "../res/MSX2-palette.png"
-    TEST_TEXTURE = world.tm.load(filename, "PNG-PIL")
+    image = world.tm.load_image("TEST", filename, "PNG-PIL")
+    builder = TextureBuilder().set_wrapped('repeat')
+    TEST_TEXTURE = world.tm.load_texture("TEST", image, builder)
     
     # Create the first entity
     cube_entity = world.em.create()
@@ -185,12 +189,17 @@ def init_world(world):
             world.batch.add(cube_entity)
     
     # Try loading some text
-    filename = path + "/res/fonts/berlin2.png"
-    ftex1 = world.tm.load(filename, "PNG-PIL")
-    font1 = Font("Consolas", path + "/res/fonts/berlin2.fnt", ftex1)
+    #filename = path + "/res/fonts/consolas_asc.png"
+    filename = path + "/res/fonts/segoeUI.png"
+    image = world.tm.load_image("FONT_CONSOLAS", filename, "PNG-PIL")
+    builder = TextureBuilder().set_filtered(True).set_wrapped(GL_CLAMP_TO_EDGE)
+    ftex1 = world.tm.load_texture("FONT_CONSOLAS", image, builder)
+    #font1 = Font("Consolas", path + "/res/fonts/consolas_asc.fnt", ftex1)
+    font1 = Font("Consolas", path + "/res/fonts/segoeUI.fnt", ftex1)
     WorldTestApp.textmgr.add_font(font1)
-    text1 = Text("Some Text Here!", font1, 1.0, Vector2f(0.5, 0.5), 1.0)
+    text1 = Text("Camera Position: 4, 3, 1", font1, 2.0, Vector2f(0.0, 0.5), 1.0)
     WorldTestApp.textmgr.add_text(text1)
+
 
 if __name__ == "__main__":
     

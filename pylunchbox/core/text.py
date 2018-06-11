@@ -172,6 +172,13 @@ class Text(object):
     def get_vao(self): return self._vao
     def get_vbo(self): return self._vbo
 
+    def destroy(self):
+        """ Kill this loaded text. """
+
+        self._vbo.destroy()
+        self._vao.destroy()
+       
+
 class _MeshCreater(object):
 
     def __init__(self, font):
@@ -242,7 +249,7 @@ class _MeshCreater(object):
         """ Add the vertices associated with the input glyph to the array. """
 
         x1, y1 = p1 = Vector2f(cursor_x, cursor_y) + glyph.offset*fontsize
-        x2, y2 = p2 = p1 + glyph.size*fontsize
+        x2, y2 = p1 + glyph.size*fontsize
 
         # Convert to device space
         #x1 =  2 * p1.x - 1
@@ -251,7 +258,6 @@ class _MeshCreater(object):
         #y2 =  2 * p2.y + 1
 
         vertices += [x1,y1, x1,y2, x2,y2, x2,y2, x2,y1, x1,y1]
-        #vertices += [x1,y1, x1,y2, x2,y1, x2,y1, x2,y2, x2,x2]
 
     def __add_coords(self, glyph, coords):
         """ Add the texture coordinates associated with the glyph into the 
@@ -315,7 +321,9 @@ class TextManager(object):
 
     def destroy(self):
 
-        self._renderer.destroy()
+        for _, batch in self._texts.iteritems():
+            for text in batch:
+                text.destroy()
 
 if __name__ == "__main__":
 

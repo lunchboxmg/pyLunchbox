@@ -51,7 +51,7 @@ class FontFile(object):
 
     def __init__(self, filename):
 
-        self._aspect = 1280.0/720.0#device.window.get_aspect()
+        self._aspect = device.window.get_aspect()
         self._data = dict()
         self._values = dict()
         self._space = 0

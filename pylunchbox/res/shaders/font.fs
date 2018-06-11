@@ -10,11 +10,11 @@ uniform vec3 outline_color;
 
 // For large font, use low edge value, slightly higher width
 // For small font, use high edge value, slightly lower width
-const float width = 0.5;
-const float edge = 0.1;
+const float width = 0.49;
+const float edge = 0.10;
 
 // for glow, increase edge, lower width
-const float border_width = 0.7; // set to zero for no outline
+const float border_width = 0.0; // set to zero for no outline
 const float border_edge = 0.1;
 
 // for shadow
