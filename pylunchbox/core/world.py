@@ -9,32 +9,48 @@ class World(object):
     """ The World class is the centralized class for storing data that
     currently apart of the main system. """
 
-    def __init__(self):
+    def __init__(self, app):
+
+        self._app = app
 
         # Initialize the ECS architecture for this world
-        self.em = ecs.EntityManager(self)
-        self.cm = ecs.ComponentManager(self)
-        self.tm = texture.TextureManager(self)
+        self._em = ecs.EntityManager(self)
+        self._cm = ecs.ComponentManager(self)
 
-        self.batch = memory.StaticBatch(memory.MemoryManager(300000), self)
-        self.loader = modeling.ModelLoader()
+        self._batch = memory.StaticBatch(memory.MemoryManager(300000), self)
+        self._loader = modeling.ModelLoader()
 
+    def get_app(self):
+        """ Retrieve the reference to the master application. """
 
-if __name__ == "__main__":
-    
-    world = World()
-    print world.cube['cube'] # <-- has mesh data, need to add to a component
-    
-    entity = world.em.create()
-    print entity
-    
-    comp = world.cm.create(entity.get_id(), modeling.MeshComponent)
-    print comp
-    comp.bundle = world.cube["cube"]
-    print comp.bundle
-    
-    # Now we need a way to load the mesh from the batch into the gpu
-    print world.cm.get_type_for(modeling.MeshComponent)
-    world.batch.destroy()
-    
+        return self._app
 
+    app = property(get_app, doc=get_app.__doc__)
+
+    def get_em(self):
+        """ Retrieve the entity manager for this scene. """
+
+        return self._em
+    
+    em = property(get_em, doc=get_em.__doc__)
+
+    def get_cm(self):
+        """ Retrieve the component manager for this scene. """
+
+        return self._cm
+    
+    cm = property(get_cm, doc=get_cm.__doc__)
+
+    def get_batch(self):
+        """ Retrive the batch for this scene. """
+
+        return self._batch
+
+    batch = property(get_batch, doc=get_batch.__doc__)
+
+    def get_loader(self):
+        """ Retrieve the model loader for this scene. """
+
+        return self._loader
+
+    loader = property(get_loader, doc=get_loader.__doc__)

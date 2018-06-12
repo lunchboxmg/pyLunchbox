@@ -2,7 +2,7 @@ from math import pi as PI, cos, sin, atan2, sqrt
 from functools import partial
 
 from constants import *
-from maths import Vector3f, look_at_RH, cross, normalize, clamp
+from maths import Vector3f, look_at_RH, cross, normalize, clamp, look_at_LH
 from device import get_dt
 
 class CAMERA_MODE: pass
@@ -50,7 +50,7 @@ class Camera(object):
         self._range = 10.0
         self._zoom = 1.0
         self._elevation = 10.0 * D2R
-        self._yaw = PI_2
+        self._yaw = PI#PI_2
         self._speed = 5
         self._rotspeed = 2
         self._speed_zoom = 2
@@ -70,6 +70,8 @@ class Camera(object):
             self.__update_position()
             self.__update_vectors()
             self._dirty = False
+            print self._front
+            print self._right
         
     def __constrain_angles(self):
         """ Internal function to constrain the rotation angles. """
@@ -176,6 +178,20 @@ class Camera(object):
             self._elevation = new_elevation
             self._zoom = new_zoom
             self._dirty = True
+
+    def get_position(self):
+        """ Retrieve the camera's position vector. """
+
+        return self._position
+
+    position = property(get_position, doc=get_position.__doc__)
+
+    def get_target_pos(self):
+        """ Retrieve the position of the camera's target. """
+
+        return self._target
+    
+    target_pos = property(get_target_pos, doc=get_target_pos.__doc__)
 
     def get_matrix(self):
         """ Retrieve the camera's tview matrix. """

@@ -2,6 +2,7 @@ import glfw
 import random
 import os
 import inspect
+from time import time as _time
 
 from pylunchbox import core
 from pylunchbox.core import device, modeling, maths
@@ -9,9 +10,14 @@ from pylunchbox.core.main import MainApp
 from pylunchbox.core.world import World
 from pylunchbox.core.camera import Camera
 from pylunchbox.core.glutils import *
-from sample.input import InputSystem
 from pylunchbox.core.text import TextManager, Text, Font
-from pylunchbox.core.texture import TextureBuilder
+from pylunchbox.core.texture import TextureManager, TextureBuilder
+from pylunchbox.core.resource import ResourceManager
+from sample.input import InputSystem
+from sample.blocks import BlockGenerator
+
+CAMERA_MSG = "Camera Position: {:.2f}, {:.2f}, {:.2f}"
+CAMTGT_MSG = "Camera Target: {:.2f}, {:.2f}, {:.2f}"
 
 class WorldTestApp(MainApp):
     
@@ -28,9 +34,11 @@ class WorldTestApp(MainApp):
 
         # Initialize parts        
         device.init(cls, cls.get_full_title())
-        cls.world = World()
-        cls.textmgr = TextManager(cls)
-        init_world(cls.world)
+        cls.res = ResourceManager()
+        cls.world = World(cls)
+        cls.tex_mgr = TextureManager(cls)
+        cls.txt_mgr = TextManager(cls)
+        init_world(cls)
         cls.camera = Camera(cls.world)
         cls.input = InputSystem(cls)
         cls.renderer = TestRenderer(cls)
@@ -45,24 +53,29 @@ class WorldTestApp(MainApp):
             device.update()
             cls.input.process()
             cls.camera.update()
+            TEXT_CAMERA.set_text(CAMERA_MSG.format(*cls.camera.position))
+            TEXT_CAMTGT.set_text(CAMTGT_MSG.format(*cls.camera.target_pos))
+
             #print device.Time.get_fps()
             if keyboard.is_key_pressed(glfw.KEY_ESCAPE):
                 print "Bye Bye!"
                 device.request_window_closure()
             cls.renderer.render()
-            cls.textmgr.render()
+            cls.txt_mgr.render()
             device.swap()
         cls.destroy()
     
     @classmethod
     def destroy(cls):
-        cls.textmgr.destroy()
-        cls.world.tm.destroy()
+        cls.txt_mgr.destroy()
+        cls.tex_mgr.destroy()
         cls.world.batch.destroy()
         #cls.world.shader.destroy()
         core.device.shutdown()
 
 TEST_TEXTURE = None
+TEXT_CAMERA = None
+TEXT_CAMTGT = None
 
 class TestShader(ShaderProgram):
     
@@ -137,14 +150,17 @@ class TestRenderer(object):
         
         self.shader.stop()
 
-def init_world(world):
+def init_world(app):
 
-    global TEST_TEXTURE
-    path = WorldTestApp.path
+    global TEST_TEXTURE, TEXT_CAMERA, TEXT_CAMTGT
+
+    start = _time()
+    world = app.world
+    path = app.path
 
     # Load the test mesh
     filename = path + "/res/cube.obj"
-    #filename = path + "res/stall.obj"
+    #filename = path + "/res/stall.obj"
     #filename = path + "/res/birch1.obj"
     #filename = path + "/res/dragon.obj"
     cube_mesh = world.loader.load_mesh("Cube", filename)
@@ -153,17 +169,18 @@ def init_world(world):
     filename = path + "/res/textures/wildtextures-seamless-paper-texture.jpg"
     filename = path + "/res/textures/some_green.png"
     filename = path + "/res/textures/grid1.png"
+    filename = path + "/res/textures/test_16-16.png"
     #filename = "../res/MSX2-palette.png"
-    image = world.tm.load_image("TEST", filename, "PNG-PIL")
+    image = app.tex_mgr.load_image("TEST", filename, "PNG-PIL")
     builder = TextureBuilder().set_wrapped('repeat')
-    TEST_TEXTURE = world.tm.load_texture("TEST", image, builder)
+    TEST_TEXTURE = app.tex_mgr.load_texture("TEST", image, builder)
     
     # Create the first entity
     cube_entity = world.em.create()
     cube_bundle_comp = world.cm.create(cube_entity.get_id(), modeling.MeshComponent)
     cube_bundle_comp.bundle = cube_mesh
     cube_transform = world.cm.create(cube_entity.get_id(), maths.Transformation)
-    cube_transform.set_position(maths.Vector3f(0, 0, 0))
+    cube_transform.set_position(maths.Vector3f(-2, 2, -2))
     cube_transform.set_scale(maths.Vector3f(2, 1, .5))
     world.batch.add(cube_entity)
     
@@ -172,34 +189,49 @@ def init_world(world):
     cube_bundle_comp = world.cm.create(cube_entity.get_id(), modeling.MeshComponent)
     cube_bundle_comp.bundle = cube_mesh
     cube_transform = world.cm.create(cube_entity.get_id(), maths.Transformation)
-    cube_transform.set_position(maths.Vector3f(0, 0, 1))
+    cube_transform.set_position(maths.Vector3f(-3, 2, -4))
     cube_transform.set_rotation(maths.Vector3f(20, 30, -40))
     cube_transform.set_scale(maths.Vector3f(0.75, 1.5, 2.0))
     world.batch.add(cube_entity)
 
-    for i in xrange(10):
-        for j in xrange(10):
+    for i in xrange(6):
+        for j in xrange(1):
             cube_entity = world.em.create()
             cube_bundle_comp = world.cm.create(cube_entity.get_id(), modeling.MeshComponent)
             cube_bundle_comp.bundle = cube_mesh
             cube_transform = world.cm.create(cube_entity.get_id(), maths.Transformation)
-            cube_transform.set_position(maths.Vector3f(i, random.uniform(-.2,.2), j)) #
-            #cube_transform.set_scale(maths.Vector3f(0.05, 0.05, 0.05))
+            cube_transform.set_position(maths.Vector3f(i, 0, j)) #random.uniform(-.2,.2)
+            #cube_transform.set_scale(maths.Vector3f(0.9, 0.9, 0.9))
             #cube_transform.set_rotation(maths.Vector3f(random.uniform(0,60), random.uniform(0,60), random.uniform(0,60)))
             world.batch.add(cube_entity)
     
     # Try loading some text
-    #filename = path + "/res/fonts/consolas_asc.png"
-    filename = path + "/res/fonts/segoeUI.png"
-    image = world.tm.load_image("FONT_CONSOLAS", filename, "PNG-PIL")
-    builder = TextureBuilder().set_filtered(True).set_wrapped(GL_CLAMP_TO_EDGE)
-    ftex1 = world.tm.load_texture("FONT_CONSOLAS", image, builder)
-    #font1 = Font("Consolas", path + "/res/fonts/consolas_asc.fnt", ftex1)
-    font1 = Font("Consolas", path + "/res/fonts/segoeUI.fnt", ftex1)
-    WorldTestApp.textmgr.add_font(font1)
-    text1 = Text("Camera Position: 4, 3, 1", font1, 2.0, Vector2f(0.0, 0.5), 1.0)
-    WorldTestApp.textmgr.add_text(text1)
+    font1 = app.txt_mgr.load_font("segoeUI")
+    font2 = app.txt_mgr.load_font("consolas_asc")
+    TEXT_CAMERA = Text("Camera Position: 4, 3, 1", font2, 1.0, Vector2f(0.0, 0.0), 1.0)
+    app.txt_mgr.add_text(TEXT_CAMERA)
+    TEXT_CAMTGT = Text("Target Position: 0, 1, 0", font2, 1.0, Vector2f(0.0, TEXT_CAMERA.mesh_data.height), 1.0)
+    app.txt_mgr.add_text(TEXT_CAMTGT)
 
+    gen = BlockGenerator(app, cube_mesh)
+
+    filename = path + "/res/textures/test_16-16.png"
+    image = app.tex_mgr.load_image("atlas_test", filename)
+    builder = TextureBuilder().set_wrapped('repeat')
+    atlas = app.tex_mgr.load_texture_atlas("atlas_test", image, builder, 16, 16)
+    print atlas.get_uv_for(1, 1)
+
+    block1 = gen.create_block()
+    print block1.bundle
+    block1.trans.set_position(maths.Vector3f(5, 5, 5))
+    #block1.trans.set_rotation(maths.Vector3f(45, 45, 45))
+    gen.set_face_texture(block1, 0, atlas, 2, 1)
+    gen.set_face_texture(block1, 1, atlas, 2, 1)
+    gen.load_block(block1)
+
+    done = _time()
+
+    print done - start
 
 if __name__ == "__main__":
     

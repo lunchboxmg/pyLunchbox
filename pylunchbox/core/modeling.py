@@ -2,6 +2,7 @@
 
 """
 import numpy as np
+from numpy import concatenate
 from time import time as _time
 
 __author__ = "lunchboxmg"
@@ -89,40 +90,43 @@ class MeshData(object):
     def __init__(self, vertices, uvs, normals):
 
         self.vertices = vertices
+        if len(uvs) == 0:
+            uvs = [Vector2f(0, 0) for i in xrange(len(vertices))]
         self.uvs = uvs
         self.normals = normals
         
     def pack(self, transform=None):
-        
-        vsize = self.vertices[0].size
-        try:
-            tsize = self.uvs[0].size
-        except:
-            self.uvs = [Vector2f(0,0) for i in xrange(len(self.vertices))]
-            tsize = self.uvs[0].size
-        nsize = self.normals[0].size
-        toffset = vsize
-        noffset = toffset + tsize
-        loffset = noffset + nsize
-        
-        stride = vsize + tsize + nsize
-        r = np.empty(len(self.vertices) * stride, dtype=Vector3f._UNIT)
+        """ Pack the mesh data into a continuous array.
 
-        p = 0
-        for v, vt, vn in zip(self.vertices, self.uvs, self.normals):
-            if transform is None:
-                r[p : p + vsize] = v
-            else:
-                # FIXME: Change the transform attr to matrix attr most likely
-                r[p : p + vsize] = v.transform(transform.T)
-            r[p + toffset : p + noffset] = vt
-            r[p + noffset : p + loffset] = vn
-            p += stride
-        
-        #a = np.array(zip(self.vertices, self.uvs, self.normals)).flatten()
-        #r = np.concatenate(a)
+        Parameters
+        ----------
+        transform : :class:`ndarray`, optional
+            Transform matrix that needs to be applied to the mesh data. 
+            This is used for static models for transform does not change, so 
+            the vertices are converted to model space.
+
+        FIXME: Transforming the vertices causes at least a 10 times increase
+        in packing.  Need to improve!
+        """
+
+        if transform is None:
+            vs = self.vertices
+        else:
+            trans = transform.T
+            vs = (v.transform(trans) for v in self.vertices)
+        a = np.array(zip(vs, self.uvs, self.normals)).flatten()
+        r = concatenate(a)
         
         return r
+
+    def clone(self):
+        """ Create a clone of this mesh data. """
+
+        v = [v for v in self.vertices]
+        u = [u for u in self.uvs]
+        n = [n for n in self.normals]
+
+        return MeshData(v, u, n)
 
     def get_vertex_count(self):
         """ Retrieve the number of vertices for this model. """
@@ -137,7 +141,17 @@ class MeshBundle(dict):
         r = []
         for v in self.itervalues():
             r.append(v.pack(transform))
-        return np.concatenate(r)
+        return concatenate(r)
+
+    def clone(self):
+        """ Create a clone. """
+
+        new = MeshBundle()
+        for k, v in self.iteritems():
+            new[k] = v.clone()
+        
+        return new
+
 
 class MeshComponent(Component):
 
@@ -325,3 +339,27 @@ if __name__ == "__main__":
 
     for name, bundle in test_loader.iter_meshes():
         print name, len(bundle)
+
+### OLD STUFF
+#        if transform is not None: trans = transform.T
+#        
+#        vsize = self.vertices[0].size
+#        tsize = self.uvs[0].size
+#        nsize = self.normals[0].size
+#        toffset = vsize
+#        noffset = toffset + tsize
+#        loffset = noffset + nsize
+        
+#        stride = vsize + tsize + nsize
+#        r = np.empty(len(self.vertices) * stride, dtype=Vector3f._UNIT)
+#
+#        p = 0
+#        for v, vt, vn in zip(self.vertices, self.uvs, self.normals):
+#            if transform is None:
+#                r[p : p + vsize] = v
+#            else:
+#                # FIXME: Change the transform attr to matrix attr most likely
+#                r[p : p + vsize] = v.transform(trans)
+#            r[p + toffset : p + noffset] = vt
+#            r[p + noffset : p + loffset] = vn
+#            p += stride

@@ -48,8 +48,16 @@ PAD_RIGHT = 3
 DPAD = 8
 
 class FontFile(object):
+    """ The FontFile class contains all the meta data for a font. """
 
     def __init__(self, filename):
+        """ Constructor.
+
+        Parameters
+        ----------
+        filename : :obj:`str`
+            This name of the font file (.fnt).
+        """
 
         self._aspect = device.window.get_aspect()
         self._data = dict()
@@ -200,6 +208,7 @@ class Font(object):
         self._name = name
         self._metadata = FontFile(filename)
         self._texture = texture
+        self._loader = None
 
     def get_space(self):
 
@@ -218,6 +227,13 @@ class Font(object):
         return self._texture
 
     texture = property(get_texture, doc=get_texture.__doc__)
+
+    def get_loader(self):
+        """ Retrieve the TextLoader associated with this font. """
+
+        return self._loader
+
+    loader = property(get_loader, doc=get_loader.__doc__)
 
     def __getitem__(self, name):
 
@@ -253,11 +269,12 @@ class FontRenderer(object):
             glActiveTexture(GL_TEXTURE0)
             font.get_texture().bind()
             for text in batch:
+                if not text.is_loaded(): continue
                 self._shader.transform.load(text.position.x, text.position.y, 1.0)
-                vao = text.get_vao()
+                vao = text.mesh_data.vao
                 vao.bind()
                 vao.enable(2)
-                glDrawArrays(GL_TRIANGLES, 0, text.mesh_size)
+                glDrawArrays(GL_TRIANGLES, 0, text.mesh_data.count)
                 vao.disable()
                 vao.unbind()
             font.get_texture().unbind()

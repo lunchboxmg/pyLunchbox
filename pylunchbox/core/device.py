@@ -358,21 +358,21 @@ class DeviceTime(object):
 
     def __init__(self):
 
-        self._time_current = self._time_previous = self.__get_time()
+        self._time_current = self._time_previous = self.get_gpu_time()
         self._time_delta = self._frame_count = self._fps = 0
 
     def update(self):
         """ Update the timing between frames. """
 
-        now = self.__get_time()
+        now = self.get_gpu_time()
         self._time_delta = now - self._time_current
         self._time_previous = self._time_current
         self._time_current = now
         self._fps = 1.0 / self._time_delta
         self._frame_count += 1
 
-    def __get_time(self):
-        """ Internal function to retrieve the GPU's current time. """
+    def get_gpu_time(self):
+        """ Retrieve the GPU's current time. """
 
         return glfw.get_time()
 

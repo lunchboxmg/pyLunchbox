@@ -6,9 +6,12 @@ import imageio
 __author__ = "lunchboxmg"
 
 from material import ColorRGB, ColorRGBA
+from maths import make_float_array, Vector2f
 
 class Texture2D(object):
-    
+    """ The Texture2D class houses the links between a local image and its 
+    texture reference on the GPU. """
+   
     def __init__(self, name, image):
         """ Constructor.
 
@@ -61,7 +64,29 @@ class Texture2D(object):
 
         glDeleteTextures([self._id])
 
-class TextureAtlas(object) : pass
+class TextureAtlas2D(Texture2D):
+
+    def __init__(self, name, image, xsize, ysize):
+        super(TextureAtlas2D, self).__init__(name, image)
+        self._xsize = xsize
+        self._ysize = ysize
+        self._usize = float(xsize) / float(image.width)
+        self._vsize = float(xsize) / float(image.width)
+
+    def get_uv_for(self, x, y):
+        """ Get the upper right and lower left coordinate of the box that 
+        corresponds to the input (x, y) coordinate. """
+
+        x1 = self._usize * x
+        y1 = (1.0 - self._vsize * y)
+        x2 = x1 + self._usize
+        y2 = y1 - self._vsize
+
+        r = [(x1,y1), (x1,y2), (x2,y1), (x2,y1), (x1,y2), (x2,y2)]
+        r = [(x1,y1), (x2,y1), (x1,y2), (x1,y2), (x2,y1), (x2,y2)]
+
+
+        return [Vector2f(x, y) for (x, y) in r]
 
 TEXTURE_WRAP = {"clamp_to_edge": GL_CLAMP_TO_EDGE, 
                 "clamp_to_border": GL_CLAMP_TO_BORDER, 
@@ -69,7 +94,10 @@ TEXTURE_WRAP = {"clamp_to_edge": GL_CLAMP_TO_EDGE,
                 "mirrored_repeat": GL_MIRRORED_REPEAT, 
                 "mirror_clamp_to_edge": GL_MIRROR_CLAMP_TO_EDGE}
 
-class TextureBuilder(object): 
+class TextureBuilder(object):
+    """ The TextureBuilder is a helper class for sending image data to the 
+    GPU. Each setter method also returns the builder so that method calls 
+    can be chained. """
 
     def __init__(self):
         """ Constructor. """
@@ -144,6 +172,7 @@ class ImageData(object):
         self._height, self._width, self._channels = data.shape
 
     def load_to_gpu(self):
+        """ Load this image onto the GPU. """
 
         glTexImage2D(GL_TEXTURE_2D, 0, self.format, self._width, self._height, 
                      0, self.format, GL_UNSIGNED_BYTE, self._data.flatten())
@@ -195,13 +224,30 @@ class ImageData(object):
 class TextureManager(object):
     
     def __init__(self, world):
+        """ Constructor. """
         
         self.world = world
-        self._textures = {}
-        self._images = {}
+        self._textures = {} # Local Texture cache
+        self._images = {} # Local image cache
 
     def load_image(self, name, filename, format=None, **kwargs):
-        """ Load the image data into the app. """
+        """ Load the image data into the app. 
+
+        This function utilizes the imageio imread function.  Parameters for a 
+        imread call can also be used in this function call.
+        
+        Parameters
+        ----------
+        name : :obj:`str`
+            A string used to lookup the image in the internal cache.
+        filename : :obj:`str`
+            The name of the image file.
+        format : :obj:`str`, optional
+            The format to use to read the file. By default imageio selects the 
+            appropriate for you based on the filename and its contents.
+        kwargs: ...
+            Further keyword arguments are passed to the reader base on format.
+        """
 
         image = ImageData(name, imageio.imread(filename, format=format, **kwargs))
         self._images[name] = image
@@ -224,8 +270,40 @@ class TextureManager(object):
         """
 
         texture = Texture2D(name, image)
-        texture.bind()
+        self.__build_texture(texture, builder, image)
+        self._textures[name] = texture
+        return texture
 
+    def load_texture_atlas(self, name, image, builder, xsize, ysize):
+        """ Load the texture atlas to the GPU. 
+        
+        Parameters
+        ----------
+        name : :obj:`str`
+            The name associated with the texure being loaded to be used for 
+            fast lookup.
+        image : :class:`ImageData`
+            The data and parameters for the image this created texture will 
+            use.
+        builder : :class:`TextBuilder`
+            Set of flags dictating how the created texture will be loaded into 
+            the GPU.
+        xsize : :obj:`int`
+            The size of an item in the x-direction (horizontal).
+        ysize : :obj:`int`
+            The size of an item in the y-direction (vertical).
+        """
+
+        texture = TextureAtlas2D(name, image, xsize, ysize)
+        self.__build_texture(texture, builder, image)
+        self._textures[name] = texture
+        return texture
+
+    def __build_texture(self, texture, builder, image):
+        """ Internal function to set the parameters of the texture using the 
+        values from the input TextureBuilder object. """
+
+        texture.bind()
         if builder.is_mipmap():
             glGenerateMipmap(GL_TEXTURE_2D)
             if builder.is_filtered():
@@ -252,12 +330,9 @@ class TextureManager(object):
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER)
             glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, builder.get_border_color())
-        
+
         image.load_to_gpu()
         texture.unbind()
-        self._textures[name] = texture
-        return texture
-
 
     def destroy(self):
         """ Remove loaded textures from the device. """
@@ -265,9 +340,3 @@ class TextureManager(object):
         for t in self._textures.itervalues():
             t.destroy()
         self.textures = {}
-        
-if __name__ == "__main__":
-    
-    tm = TextureManager()
-    tm.load("../res/white_crumpled_paper_texture.jpg")
-        
