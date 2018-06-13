@@ -227,6 +227,10 @@ def init_world(app):
     #block1.trans.set_rotation(maths.Vector3f(45, 45, 45))
     gen.set_face_texture(block1, 0, atlas, 2, 1)
     gen.set_face_texture(block1, 1, atlas, 2, 1)
+    gen.set_face_texture(block1, 2, atlas, 2, 1)
+    gen.set_face_texture(block1, 3, atlas, 2, 1)
+    gen.set_face_texture(block1, 4, atlas, 0, 1)
+    gen.set_face_texture(block1, 5, atlas, 1, 1)
     gen.load_block(block1)
 
     done = _time()

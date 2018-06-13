@@ -70,8 +70,6 @@ class Camera(object):
             self.__update_position()
             self.__update_vectors()
             self._dirty = False
-            print self._front
-            print self._right
         
     def __constrain_angles(self):
         """ Internal function to constrain the rotation angles. """

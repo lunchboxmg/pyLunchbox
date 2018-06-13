@@ -286,12 +286,6 @@ class TextLoader(object):
         x1, y1 = p1 = Vector2f(cursor_x, cursor_y) + glyph.offset*fontsize
         x2, y2 = p1 + glyph.size*fontsize
 
-        # Convert to device space
-        #x1 =  2 * p1.x - 1
-        #y1 = -2 * p1.y + 1
-        #x2 =  2 * p2.x - 1
-        #y2 =  2 * p2.y + 1
-
         vertices += [x1,y1, x1,y2, x2,y2, x2,y2, x2,y1, x1,y1]
 
     def __add_coords(self, glyph, coords):
@@ -457,21 +451,3 @@ class TextManager(object):
         for _, batch in self._texts.iteritems():
             for text in batch:
                 text.destroy()
-
-if __name__ == "__main__":
-
-    from resource import ResourceManager
-
-    rm = ResourceManager()
-    filename = rm.path + "/fonts/berlin.fnt"
-
-    tm = TextManager(None)
-    font = tm.load_font("Berlin", filename, None)
-
-    msg = "Hello World!"
-    pos = Vector3f(0, 0, 1)
-    text = Text("Hello World!", font, 12, pos, 1)
-
-    v, t =tm._loaders[font].create(text)
-    print v
-    print t
