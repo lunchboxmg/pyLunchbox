@@ -47,7 +47,6 @@ class BlockGenerator(object):
         for v in block.bundle.bundle['cube'].uvs[face*6:(face+1)*6]:
             v1 = v * 0.0625
             temp.append(v1 + offset)
-            print v, v1 + offset
         block.bundle.bundle['cube'].uvs[face*6:(face+1)*6] = temp
 
 
