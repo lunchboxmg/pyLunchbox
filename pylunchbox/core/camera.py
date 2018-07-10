@@ -8,7 +8,7 @@ from device import get_dt
 class CAMERA_MODE: pass
 
 class DIRECTION:
-    """ Enum-like flag class for designating camera direction. """
+    """ Enum-like flag class for designating camera movement direction. """
     
     LEFT     = 0x01
     RIGHT    = 0x02
