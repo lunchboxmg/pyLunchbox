@@ -52,9 +52,9 @@ vec3 calc_light(Light light, vec3 dir_view) {
     vec3 diffuse = light.diffuse * (diff * material.diffuse);
     vec3 specular = light.specular * (spec * material.specular);
 
-    float distance = length(light.position.xyz - pass_position);
-    float attn = 1.0f / (light.constant + light.linear * distance + 
-                         light.quadratic * (distance * distance));
+    float dist = length(light.position.xyz - pass_position);
+    float attn = 1.0f / (light.constant + light.linear * dist + 
+                         light.quadratic * (dist * dist));
     
     return (ambient + diffuse + specular) * attn;
 }
@@ -70,7 +70,7 @@ void main(void) {
     vec3 dir_view = normalize(camera_pos - pass_position);
     
     float alpha = dot(normal, L);
-    float brightness = max(alpha, 0.1f);
+    float brightness = max(alpha, 0.3f);
     vec3 diffuse = brightness * vec3(1.0f, 1.0f, 1.0f);
     
     vec4 px_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);

@@ -408,6 +408,8 @@ class MemoryManager(object):
         self._data = None
         self._empty = None
 
+class DynamicMemoryManager(MemoryManager): pass
+    
 class Batch(object): pass
 
 class StaticBatch(Batch):
