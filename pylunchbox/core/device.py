@@ -244,7 +244,7 @@ class Mouse(object):
         self._bit_modfield = 0
 
         # Update mouse positioning
-        new_x, new_y = glfw.get_window_pos(self._window)
+        new_x, new_y = glfw.get_cursor_pos(self._window)
         self._dx = new_x - self._x
         self._dy = new_y - self._y
         self._x = new_x
